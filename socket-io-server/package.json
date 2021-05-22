@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/app.ts"
+    "start": "ts-node-dev src/app.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +18,8 @@
     "socket.io": "^4.1.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^1.1.6"
   }
 }
