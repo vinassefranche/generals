@@ -1,10 +1,8 @@
-import * as O from "fp-ts/Option";
-import * as RA from "fp-ts/ReadonlyArray";
-import { constant, pipe } from "fp-ts/function";
 import express from "express";
 import * as http from "http";
 import { Server, Socket } from "socket.io";
 import { armyCell, Cell, emptyCell, mountainCell, CellType } from "./Cell";
+import { Game, Board } from "./Game";
 
 const port = process.env.PORT || 4001;
 // const index = require("./routes/index");
@@ -24,128 +22,61 @@ const io = new Server(server, {
 
 // let interval: NodeJS.Timeout;
 
-type Board = ReadonlyArray<ReadonlyArray<Cell>>;
-
-let board: Board = [
-  [emptyCell, emptyCell, emptyCell, mountainCell],
-  [
-    mountainCell,
-    armyCell({ color: "blue", soldiersNumber: 1 }),
-    emptyCell,
-    emptyCell,
-  ],
-  [emptyCell, mountainCell, mountainCell, emptyCell],
-  [mountainCell, emptyCell, emptyCell, emptyCell],
-];
-
-const findArmy = () => {
-  for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
-    const row = board[rowIndex];
-    for (let columnIndex = 0; columnIndex < row.length; columnIndex++) {
-      const cell = row[columnIndex];
-      if (cell.type === CellType.Army) {
-        return O.some({
-          rowIndex,
-          columnIndex,
-          cell,
-        });
-      }
-    }
-  }
-  return O.none;
-};
-
-const columnShift = (where: "left" | "right" | "up" | "down") => {
-  switch (where) {
-    case "left":
-      return -1;
-    case "right":
-      return 1;
-    case "up":
-    case "down":
-      return 0;
-  }
-};
-const rowShift = (where: "left" | "right" | "up" | "down") => {
-  switch (where) {
-    case "left":
-    case "right":
-      return 0;
-    case "up":
-      return -1;
-    case "down":
-      return 1;
-  }
-};
-
-const moveArmy = (board: Board, where: "left" | "right" | "up" | "down") =>
-  pipe(
-    findArmy(),
-    O.chain(({ columnIndex, rowIndex, cell }) =>
-      pipe(
-        board,
-        RA.modifyAt(rowIndex + rowShift(where), (row) =>
-          pipe(
-            row,
-            RA.modifyAt(
-              columnIndex + columnShift(where),
-              (): Cell =>
-                armyCell({
-                  color: cell.color,
-                  soldiersNumber: cell.soldiersNumber,
-                })
-            ),
-            O.getOrElse(() => row)
-          )
-        )
-      )
-    ),
-    O.getOrElse(constant(board))
-  );
+let game: Game | undefined = undefined;
 
 let counter = 0;
 
 setInterval(() => {
+  if (!game) {
+    return;
+  }
   counter++;
   if (counter === 15) {
-    board = board.map((row) =>
-      row.map((cell) =>
-        cell.type === CellType.Army
-          ? armyCell({
-              color: cell.color,
-              soldiersNumber: cell.soldiersNumber + 1,
-            })
-          : cell
-      )
-    );
+    game.increaseAllArmy();
     counter = 0;
   }
+  const board = game.board;
   sockets.forEach((socket) => socket.emit("board", board));
 }, 1000);
 
 let sockets: ReadonlyArray<Socket> = [];
 io.on("connection", (socket) => {
   console.log("New client connected");
+  if (!game) {
+    game = new Game();
+  }
   sockets = [...sockets, socket];
 
   socket.on("move:right", function () {
+    if (!game) {
+      return;
+    }
     console.log("move:right");
-    board = moveArmy(board, "right");
+    game.moveArmy("right");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:left", function () {
+    if (!game) {
+      return;
+    }
     console.log("move:left");
-    board = moveArmy(board, "left");
+    game.moveArmy("left");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:up", function () {
+    if (!game) {
+      return;
+    }
     console.log("move:up");
-    board = moveArmy(board, "up");
+    game.moveArmy("up");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:down", function () {
+    if (!game) {
+      return;
+    }
     console.log("move:down");
-    board = moveArmy(board, "down");
+    game.moveArmy("down");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("disconnect", () => {
