@@ -1,6 +1,7 @@
 import express from "express";
 import * as http from "http";
 import { Server, Socket } from "socket.io";
+import { armyCell, Cell, emptyCell, mountainCell } from "./Cell";
 
 const port = process.env.PORT || 4001;
 // const index = require("./routes/index");
@@ -18,60 +19,54 @@ const io = new Server(server, {
   },
 });
 
-let interval: NodeJS.Timeout;
+// let interval: NodeJS.Timeout;
 
-type Cell = {
-  type: "empty" | "mountain" | "army";
-  color?: "blue";
-};
 type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 
 const boardBase: Board = [
-  [{ type: "empty" }, { type: "empty" }, { type: "empty" }],
-  [{ type: "mountain" }, { type: "empty" }, { type: "empty" }],
-  [{ type: "empty" }, { type: "empty" }, { type: "empty" }],
+  [emptyCell, emptyCell, emptyCell],
+  [mountainCell, emptyCell, emptyCell],
+  [emptyCell, emptyCell, emptyCell],
 ];
 
-const getBoard = (): Board => {
-  const board = [...boardBase];
-  const rand = Math.random();
-  board[1] = [
-    { type: "mountain" },
-    { type: "army", color: "blue" },
-    { type: "empty" },
-  ];
-  if (rand > 0.5) {
-    board[1] = [
-      { type: "mountain" },
-      { type: "empty" },
-      { type: "army", color: "blue" },
-    ];
-  }
-  return board;
-};
+let board = [...boardBase];
+board[1] = [
+  mountainCell,
+  armyCell({ color: "blue", soldiersNumber: 1 }),
+  emptyCell,
+];
+setInterval(() => {
+  // console.log("board", board);
+  sockets.forEach((socket) => socket.emit("board", board));
+}, 1000);
 
+let sockets: ReadonlyArray<Socket> = [];
 io.on("connection", (socket) => {
   console.log("New client connected");
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => emitBoard(socket), 1000);
+  sockets = [...sockets, socket];
 
-  socket.on("message", function (message: any) {
-    console.log(message);
-    // echo the message back down the
-    // websocket connection
-    socket.emit("message", `received ${message}`);
+  socket.on("move:right", function () {
+    console.log("move:right");
+    board[1] = [
+      mountainCell,
+      emptyCell,
+      armyCell({ color: "blue", soldiersNumber: 1 }),
+    ];
+    // socket.emit("message", `received ${message}`);
+  });
+  socket.on("move:left", function () {
+    console.log("move:left");
+    board[1] = [
+      mountainCell,
+      armyCell({ color: "blue", soldiersNumber: 1 }),
+      emptyCell,
+    ];
+    // socket.emit("message", `received ${message}`);
   });
   socket.on("disconnect", () => {
     console.log("Client disconnected");
-    clearInterval(interval);
+    sockets = sockets.filter((sock) => sock !== socket);
   });
 });
-
-const emitBoard = (socket: Socket) => {
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("board", getBoard());
-};
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
