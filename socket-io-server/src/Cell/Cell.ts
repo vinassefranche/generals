@@ -1,4 +1,4 @@
-enum CellType {
+export enum CellType {
   Empty = "empty",
   Mountain = "mountain",
   Army = "army",

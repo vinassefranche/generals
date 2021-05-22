@@ -1,7 +1,10 @@
+import * as O from "fp-ts/Option";
+import * as RA from "fp-ts/ReadonlyArray";
+import { constant, pipe } from "fp-ts/function";
 import express from "express";
 import * as http from "http";
 import { Server, Socket } from "socket.io";
-import { armyCell, Cell, emptyCell, mountainCell } from "./Cell";
+import { armyCell, Cell, emptyCell, mountainCell, CellType } from "./Cell";
 
 const port = process.env.PORT || 4001;
 // const index = require("./routes/index");
@@ -23,18 +26,54 @@ const io = new Server(server, {
 
 type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 
-const boardBase: Board = [
+let board: Board = [
   [emptyCell, emptyCell, emptyCell],
-  [mountainCell, emptyCell, emptyCell],
+  [mountainCell, armyCell({ color: "blue", soldiersNumber: 1 }), emptyCell],
   [emptyCell, emptyCell, emptyCell],
 ];
 
-let board = [...boardBase];
-board[1] = [
-  mountainCell,
-  armyCell({ color: "blue", soldiersNumber: 1 }),
-  emptyCell,
-];
+const findArmy = () => {
+  for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
+    const row = board[rowIndex];
+    for (let columnIndex = 0; columnIndex < row.length; columnIndex++) {
+      const cell = row[columnIndex];
+      if (cell.type === CellType.Army) {
+        return O.some({
+          rowIndex,
+          columnIndex,
+          cell,
+        });
+      }
+    }
+  }
+  return O.none;
+};
+
+const moveArmy = (board: Board, where: "left" | "right") =>
+  pipe(
+    findArmy(),
+    O.chain(({ columnIndex, rowIndex, cell }) =>
+      pipe(
+        board,
+        RA.modifyAt(rowIndex, (row) =>
+          pipe(
+            row,
+            RA.modifyAt(
+              columnIndex + (where === "left" ? -1 : 1),
+              (): Cell =>
+                armyCell({
+                  color: cell.color,
+                  soldiersNumber: cell.soldiersNumber,
+                })
+            ),
+            O.getOrElse(() => row)
+          )
+        )
+      )
+    ),
+    O.getOrElse(constant(board))
+  );
+
 setInterval(() => {
   // console.log("board", board);
   sockets.forEach((socket) => socket.emit("board", board));
@@ -47,20 +86,12 @@ io.on("connection", (socket) => {
 
   socket.on("move:right", function () {
     console.log("move:right");
-    board[1] = [
-      mountainCell,
-      emptyCell,
-      armyCell({ color: "blue", soldiersNumber: 1 }),
-    ];
+    board = moveArmy(board, "right");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:left", function () {
     console.log("move:left");
-    board[1] = [
-      mountainCell,
-      armyCell({ color: "blue", soldiersNumber: 1 }),
-      emptyCell,
-    ];
+    board = moveArmy(board, "left");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("disconnect", () => {
