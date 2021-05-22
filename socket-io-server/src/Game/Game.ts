@@ -1,7 +1,11 @@
+import * as string from "fp-ts/string";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
+import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
+import * as E from "fp-ts/Either";
 import { constant, pipe } from "fp-ts/function";
 import { armyCell, Cell, CellType, emptyCell, mountainCell } from "../Cell";
+import { Player, PlayerColorEq, playerPossibleColors } from "../Player";
 
 export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 
@@ -28,12 +32,12 @@ const rowShift = (where: "left" | "right" | "up" | "down") => {
   }
 };
 
-const findArmy = (board: Board) => {
+const findArmy = (player: Player, board: Board) => {
   for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
     const row = board[rowIndex];
     for (let columnIndex = 0; columnIndex < row.length; columnIndex++) {
       const cell = row[columnIndex];
-      if (cell.type === CellType.Army) {
+      if (cell.type === CellType.Army && cell.color === player.color) {
         return O.some({
           rowIndex,
           columnIndex,
@@ -47,6 +51,7 @@ const findArmy = (board: Board) => {
 
 export class Game {
   board: Board;
+  players: Array<Player>;
 
   constructor() {
     this.board = [
@@ -55,11 +60,12 @@ export class Game {
         mountainCell,
         armyCell({ color: "blue", soldiersNumber: 1 }),
         emptyCell,
-        emptyCell,
+        armyCell({ color: "green", soldiersNumber: 1 }),
       ],
       [emptyCell, mountainCell, mountainCell, emptyCell],
       [mountainCell, emptyCell, emptyCell, emptyCell],
     ];
+    this.players = [];
   }
 
   increaseAllArmy() {
@@ -75,9 +81,9 @@ export class Game {
     );
   }
 
-  moveArmy = (where: "left" | "right" | "up" | "down") =>
-    (this.board = pipe(
-      findArmy(this.board),
+  moveArmy = (player: Player, where: "left" | "right" | "up" | "down") => {
+    this.board = pipe(
+      findArmy(player, this.board),
       O.chain(({ columnIndex, rowIndex, cell }) =>
         pipe(
           this.board,
@@ -98,5 +104,20 @@ export class Game {
         )
       ),
       O.getOrElse(constant(this.board))
-    ));
+    );
+  };
+
+  newPlayer = (): E.Either<Error, Player> =>
+    pipe(
+      playerPossibleColors,
+      RA.difference(PlayerColorEq)(this.players.map((player) => player.color)),
+      RNEA.fromReadonlyArray,
+      E.fromOption(() => new Error("Maximum number of error reached")),
+      E.map(RNEA.head),
+      E.map((color) => ({ color })),
+      E.map((player) => {
+        this.players.push(player);
+        return player;
+      })
+    );
 }

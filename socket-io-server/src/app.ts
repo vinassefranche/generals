@@ -1,8 +1,8 @@
 import express from "express";
 import * as http from "http";
+import * as E from "fp-ts/Either";
 import { Server, Socket } from "socket.io";
-import { armyCell, Cell, emptyCell, mountainCell, CellType } from "./Cell";
-import { Game, Board } from "./Game";
+import { Game } from "./Game";
 
 const port = process.env.PORT || 4001;
 // const index = require("./routes/index");
@@ -45,6 +45,12 @@ io.on("connection", (socket) => {
   if (!game) {
     game = new Game();
   }
+  const playerTry = game.newPlayer();
+  if (E.isLeft(playerTry)) {
+    console.log("error initializing player");
+    return;
+  }
+  const player = playerTry.right;
   sockets = [...sockets, socket];
 
   socket.on("move:right", function () {
@@ -52,7 +58,7 @@ io.on("connection", (socket) => {
       return;
     }
     console.log("move:right");
-    game.moveArmy("right");
+    game.moveArmy(player, "right");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:left", function () {
@@ -60,7 +66,7 @@ io.on("connection", (socket) => {
       return;
     }
     console.log("move:left");
-    game.moveArmy("left");
+    game.moveArmy(player, "left");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:up", function () {
@@ -68,7 +74,7 @@ io.on("connection", (socket) => {
       return;
     }
     console.log("move:up");
-    game.moveArmy("up");
+    game.moveArmy(player, "up");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:down", function () {
@@ -76,7 +82,7 @@ io.on("connection", (socket) => {
       return;
     }
     console.log("move:down");
-    game.moveArmy("down");
+    game.moveArmy(player, "down");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("disconnect", () => {

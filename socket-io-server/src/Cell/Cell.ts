@@ -1,3 +1,5 @@
+import { PlayerColor } from "../Player";
+
 export enum CellType {
   Empty = "empty",
   Mountain = "mountain",
@@ -5,8 +7,6 @@ export enum CellType {
   Castle = "castle",
   Crown = "crown",
 }
-
-type Color = "blue" | "red" | "yellow" | "green";
 
 export type Cell = EmptyCell | MoutainCell | ArmyCell | CastleCell | CrownCell;
 
@@ -26,7 +26,7 @@ export const mountainCell: MoutainCell = {
 
 export type ArmyCell = {
   readonly type: CellType.Army;
-  readonly color: Color;
+  readonly color: PlayerColor;
   readonly soldiersNumber: number;
 };
 
@@ -34,7 +34,7 @@ export const armyCell = ({
   color,
   soldiersNumber,
 }: {
-  color: Color;
+  color: PlayerColor;
   soldiersNumber: number;
 }): ArmyCell => ({
   type: CellType.Army,
@@ -44,7 +44,7 @@ export const armyCell = ({
 
 export type CastleCell = {
   readonly type: CellType.Castle;
-  readonly color: Color;
+  readonly color: PlayerColor;
   readonly soldiersNumber: number;
 };
 
@@ -52,7 +52,7 @@ export const castleCell = ({
   color,
   soldiersNumber,
 }: {
-  color: Color;
+  color: PlayerColor;
   soldiersNumber: number;
 }): CastleCell => ({
   type: CellType.Castle,
@@ -62,7 +62,7 @@ export const castleCell = ({
 
 export type CrownCell = {
   readonly type: CellType.Crown;
-  readonly color: Color;
+  readonly color: PlayerColor;
   readonly soldiersNumber: number;
 };
 
@@ -70,7 +70,7 @@ export const crownCell = ({
   color,
   soldiersNumber,
 }: {
-  color: Color;
+  color: PlayerColor;
   soldiersNumber: number;
 }): CrownCell => ({
   type: CellType.Crown,
