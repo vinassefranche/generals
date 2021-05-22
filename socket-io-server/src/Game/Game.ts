@@ -120,4 +120,10 @@ export class Game {
         return player;
       })
     );
+
+  removePlayer = (player: Player) => {
+    this.players = this.players.filter(
+      (existingPlayer) => existingPlayer.color !== player.color
+    );
+  };
 }

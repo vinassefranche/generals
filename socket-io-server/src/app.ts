@@ -88,6 +88,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected");
     sockets = sockets.filter((sock) => sock !== socket);
+    game?.removePlayer(player);
+    if (game?.players.length === 0) {
+      game = undefined;
+    }
   });
 });
 
