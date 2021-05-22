@@ -40,7 +40,7 @@ export type CrownCell = {
 
 export const Cell = ({cell}:{cell: CellT}) => {
   if(cell.type === CellType.Mountain){
-    return <StyledCell>&#9968;</StyledCell>
+    return <StyledMountainCell>&#9968;</StyledMountainCell>
   }
   if(cell.type === CellType.Army) {
     return <StyledCell color={cell.color}>{cell.soldiersNumber}</StyledCell>
@@ -56,6 +56,10 @@ const StyledCell = styled.div<{color?: string}>`
     background-color: ${color};
   `}
   border: 1px solid black;
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+`;
+const StyledMountainCell = styled(StyledCell)`
+  font-size: 40px;
 `;
