@@ -103,8 +103,23 @@ const moveArmy = (board: Board, where: "left" | "right" | "up" | "down") =>
     O.getOrElse(constant(board))
   );
 
+let counter = 0;
+
 setInterval(() => {
-  // console.log("board", board);
+  counter++;
+  if (counter === 15) {
+    board = board.map((row) =>
+      row.map((cell) =>
+        cell.type === CellType.Army
+          ? armyCell({
+              color: cell.color,
+              soldiersNumber: cell.soldiersNumber + 1,
+            })
+          : cell
+      )
+    );
+    counter = 0;
+  }
   sockets.forEach((socket) => socket.emit("board", board));
 }, 1000);
 
