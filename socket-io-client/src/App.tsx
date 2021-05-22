@@ -25,13 +25,17 @@ function App() {
   }, []);
 
   return (
-    <>
+    <Container>
       <StyledBoard>
         {board && board.map(row => <Row>{row.map(cell => <Cell cell={cell}/>)}</Row>)}
       </StyledBoard>
-      <button onClick={() => socket && socket.emit("move:left")}>&#8592;</button>
-      <button onClick={() => socket && socket.emit("move:right")}>&#8594;</button>
-    </>
+      <button onClick={() => socket && socket.emit("move:up")}>&#8593;</button>
+      <div>
+        <button onClick={() => socket && socket.emit("move:left")}>&#8592;</button>
+        <button onClick={() => socket && socket.emit("move:right")}>&#8594;</button>
+      </div>
+      <button onClick={() => socket && socket.emit("move:down")}>&#8595;</button>
+    </Container>
   );
 }
 
@@ -46,3 +50,11 @@ const StyledBoard = styled.div`
   display: flex;
   flex-direction: column;
 `;
+
+const Container = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+`

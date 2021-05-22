@@ -27,9 +27,15 @@ const io = new Server(server, {
 type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 
 let board: Board = [
-  [emptyCell, emptyCell, emptyCell],
-  [mountainCell, armyCell({ color: "blue", soldiersNumber: 1 }), emptyCell],
-  [emptyCell, emptyCell, emptyCell],
+  [emptyCell, emptyCell, emptyCell, mountainCell],
+  [
+    mountainCell,
+    armyCell({ color: "blue", soldiersNumber: 1 }),
+    emptyCell,
+    emptyCell,
+  ],
+  [emptyCell, mountainCell, mountainCell, emptyCell],
+  [mountainCell, emptyCell, emptyCell, emptyCell],
 ];
 
 const findArmy = () => {
@@ -49,17 +55,40 @@ const findArmy = () => {
   return O.none;
 };
 
-const moveArmy = (board: Board, where: "left" | "right") =>
+const columnShift = (where: "left" | "right" | "up" | "down") => {
+  switch (where) {
+    case "left":
+      return -1;
+    case "right":
+      return 1;
+    case "up":
+    case "down":
+      return 0;
+  }
+};
+const rowShift = (where: "left" | "right" | "up" | "down") => {
+  switch (where) {
+    case "left":
+    case "right":
+      return 0;
+    case "up":
+      return -1;
+    case "down":
+      return 1;
+  }
+};
+
+const moveArmy = (board: Board, where: "left" | "right" | "up" | "down") =>
   pipe(
     findArmy(),
     O.chain(({ columnIndex, rowIndex, cell }) =>
       pipe(
         board,
-        RA.modifyAt(rowIndex, (row) =>
+        RA.modifyAt(rowIndex + rowShift(where), (row) =>
           pipe(
             row,
             RA.modifyAt(
-              columnIndex + (where === "left" ? -1 : 1),
+              columnIndex + columnShift(where),
               (): Cell =>
                 armyCell({
                   color: cell.color,
@@ -92,6 +121,16 @@ io.on("connection", (socket) => {
   socket.on("move:left", function () {
     console.log("move:left");
     board = moveArmy(board, "left");
+    // socket.emit("message", `received ${message}`);
+  });
+  socket.on("move:up", function () {
+    console.log("move:up");
+    board = moveArmy(board, "up");
+    // socket.emit("message", `received ${message}`);
+  });
+  socket.on("move:down", function () {
+    console.log("move:down");
+    board = moveArmy(board, "down");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("disconnect", () => {
