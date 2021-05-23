@@ -3,10 +3,22 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as E from "fp-ts/Either";
-import { constant, constVoid, pipe } from "fp-ts/function";
-import { armyCell, Cell, CellType, emptyCell, mountainCell } from "../Cell";
+import { constant, constVoid, flow, pipe } from "fp-ts/function";
+import {
+  armyCell,
+  Cell,
+  cellBelongsToPlayer,
+  CellType,
+  emptyCell,
+  mountainCell,
+} from "../Cell";
 import { Board } from "../Board";
-import { Player, PlayerColorEq, playerPossibleColors } from "../Player";
+import {
+  Player,
+  PlayerColorEq,
+  PlayerMove,
+  playerPossibleColors,
+} from "../Player";
 
 const columnShift = (where: "left" | "right" | "up" | "down") => {
   switch (where) {
@@ -120,6 +132,37 @@ export class Game {
     );
   }
 
+  checkMoveIsValid = (player: Player, move: PlayerMove) =>
+    pipe(
+      this.board,
+      RA.lookup(move.from.row),
+      O.chain(flow(RA.lookup(move.from.column))),
+      E.fromOption(() => new Error("given from cell is out of board")),
+      E.chain(
+        flow(
+          E.fromPredicate(
+            cellBelongsToPlayer(player),
+            () => new Error("given from cell does not belong to player")
+          )
+        )
+      ),
+      E.chain(() =>
+        pipe(
+          this.board,
+          RA.lookup(move.to.row),
+          O.chain(flow(RA.lookup(move.to.column))),
+          E.fromOption(() => new Error("given to cell is out of board")),
+          E.chain(
+            E.fromPredicate(
+              (cell) => cell.type !== CellType.Mountain,
+              () => new Error("given to cell is a mountain")
+            )
+          )
+        )
+      ),
+      E.map(constVoid)
+    );
+
   moveArmy = (player: Player, where: "left" | "right" | "up" | "down") => {
     this.board = pipe(
       findArmy(player, this.board),
@@ -146,7 +189,9 @@ export class Game {
     );
   };
 
-  newPlayer = (player: Omit<Player, "color">): E.Either<Error, Player> => {
+  newPlayer = (
+    player: Omit<Player, "color" | "moves">
+  ): E.Either<Error, Player> => {
     if (this.hasStarted) {
       return E.left(new Error("The game has already started"));
     }
@@ -156,7 +201,7 @@ export class Game {
       RNEA.fromReadonlyArray,
       E.fromOption(() => new Error("Maximum number of error reached")),
       E.map(RNEA.head),
-      E.map((color) => ({ color, ...player })),
+      E.map((color) => Player.newPlayer({ color, ...player })),
       E.map((player) => {
         this.players.push(player);
         return player;

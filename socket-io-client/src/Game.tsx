@@ -2,26 +2,30 @@ import React, { useState } from "react";
 import { Socket } from "socket.io-client";
 import styled from "styled-components";
 import { JoinedGame } from "./JoinedGame";
-import { PlayerColor } from "./Player";
+import { Player } from "./Player";
+import { SocketIOResponse } from "./SocketIoStuff";
 
 export const Game = ({ socket }: { socket: Socket }) => {
   const [name, setName] = useState<string>("");
-  const [player, setPlayer] =
-    useState<{ color: PlayerColor; name: string } | null>(null);
+  const [player, setPlayer] = useState<Player | null>(null);
 
   const onJoinGameClick = () => {
     if (!name) {
       alert("Please write a name");
       return;
     }
-    socket.emit("joinGame", { name }, (response: any) => {
-      console.log(response);
-      if (!response.ok) {
-        alert(`could not join because: ${response.reason}`);
-        return;
+    socket.emit(
+      "joinGame",
+      { name },
+      (response: SocketIOResponse<{ player: Player }>) => {
+        console.log(response);
+        if (!response.ok) {
+          alert(`could not join because: ${response.reason}`);
+          return;
+        }
+        setPlayer(response.player);
       }
-      setPlayer(response.player);
-    });
+    );
   };
 
   return (

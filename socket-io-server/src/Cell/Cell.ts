@@ -1,4 +1,4 @@
-import { PlayerColor } from "../Player";
+import { Player, PlayerColor } from "../Player";
 
 export enum CellType {
   Empty = "empty",
@@ -44,8 +44,8 @@ export const armyCell = ({
 
 export type CastleCell = {
   readonly type: CellType.Castle;
-  readonly color: PlayerColor;
-  readonly soldiersNumber: number;
+  readonly color?: PlayerColor;
+  readonly soldiersNumber?: number;
 };
 
 export const castleCell = ({
@@ -77,3 +77,10 @@ export const crownCell = ({
   color,
   soldiersNumber,
 });
+
+type OccupableCell = ArmyCell | CrownCell | CastleCell;
+const isOccupableCell = (cell: Cell): cell is OccupableCell =>
+  [CellType.Army, CellType.Castle, CellType.Crown].includes(cell.type);
+
+export const cellBelongsToPlayer = (player: Player) => (cell: Cell) =>
+  isOccupableCell(cell) && cell.color === player.color;

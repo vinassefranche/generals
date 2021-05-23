@@ -4,7 +4,7 @@ import * as E from "fp-ts/Either";
 import { Server, Socket } from "socket.io";
 import { Game } from "./Game";
 import { pipe } from "fp-ts/function";
-import { Player } from "./Player";
+import { Player, PlayerMove } from "./Player";
 
 const port = process.env.PORT || 4001;
 // const index = require("./routes/index");
@@ -27,7 +27,16 @@ const game = new Game();
 io.on("connection", (socket) => {
   console.log("New client connected");
 
-  socket.on("startGame", () => game.start());
+  socket.on("startGame", (callback) => {
+    if (game.players.length === 0) {
+      callback({
+        ok: false,
+        reason: "No players registerd, cannot start the game",
+      });
+    }
+    game.start();
+    callback({ ok: true });
+  });
 
   socket.on("joinGame", (playerData: { name: string }, callback) =>
     pipe(
@@ -36,11 +45,18 @@ io.on("connection", (socket) => {
         refreshBoard: (board) => socket.emit("board", board),
       }),
       E.map((player) => {
-        (["right", "left", "up", "down"] as const).forEach((direction) => {
-          socket.on(`move:${direction}`, () =>
-            game.moveArmy(player, direction)
-          );
-        });
+        socket.on(`move`, (move: PlayerMove, callback) =>
+          pipe(
+            game.checkMoveIsValid(player, move),
+            E.map(() => {
+              player.moves.push(move);
+            }),
+            E.match(
+              (error) => callback({ ok: false, reason: error.message }),
+              () => callback({ ok: true })
+            )
+          )
+        );
         socket.on("disconnect", () => {
           game.removePlayer(player);
           if (game.players.length === 0) {

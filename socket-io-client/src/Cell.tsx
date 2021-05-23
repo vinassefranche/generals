@@ -37,17 +37,21 @@ export type CrownCell = {
   readonly soldiersNumber: number;
 };
 
-export const Cell = ({ cell }: { cell: CellT }) => {
+export const Cell = ({ cell, active }: { cell: CellT; active: boolean }) => {
   if (cell.type === CellType.Mountain) {
-    return <StyledMountainCell>&#9968;</StyledMountainCell>;
+    return <StyledMountainCell active={active}>&#9968;</StyledMountainCell>;
   }
   if (cell.type === CellType.Army) {
-    return <StyledCell color={cell.color}>{cell.soldiersNumber}</StyledCell>;
+    return (
+      <StyledCell color={cell.color} active={active}>
+        {cell.soldiersNumber}
+      </StyledCell>
+    );
   }
-  return <StyledCell> </StyledCell>;
+  return <StyledCell active={active}> </StyledCell>;
 };
 
-const StyledCell = styled.div<{ color?: string }>`
+const StyledCell = styled.div<{ color?: string; active: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -56,7 +60,12 @@ const StyledCell = styled.div<{ color?: string }>`
     css`
       background-color: ${color};
     `}
-  border: 1px solid black;
+  border-color: black;
+  border-color: ${({ active }) => (active ? "white" : "black")};
+  border-style: solid;
+  border-width: ${({ active }) => (active ? 2 : 1)}px;
+  border-width: 1px;
+
   width: 50px;
   height: 50px;
   font-size: 20px;
