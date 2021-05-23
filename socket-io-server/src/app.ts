@@ -34,28 +34,10 @@ io.on("connection", (socket) => {
   }
   const player = playerTry.right;
 
-  socket.on("move:right", function () {
-    console.log("move:right");
-    game.moveArmy(player, "right");
-    // socket.emit("message", `received ${message}`);
-  });
-  socket.on("move:left", function () {
-    console.log("move:left");
-    game.moveArmy(player, "left");
-    // socket.emit("message", `received ${message}`);
-  });
-  socket.on("move:up", function () {
-    console.log("move:up");
-    game.moveArmy(player, "up");
-    // socket.emit("message", `received ${message}`);
-  });
-  socket.on("move:down", function () {
-    console.log("move:down");
-    game.moveArmy(player, "down");
-    // socket.emit("message", `received ${message}`);
+  (["right", "left", "up", "down"] as const).forEach((direction) => {
+    socket.on(`move:${direction}`, () => game.moveArmy(player, direction));
   });
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
     game.removePlayer(player);
     if (game.players.length === 0) {
       game.end();
