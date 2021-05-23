@@ -1,5 +1,5 @@
-import styled, { css } from 'styled-components';
-import { PlayerColor } from './Player';
+import styled, { css } from "styled-components";
+import { PlayerColor } from "./Player";
 
 enum CellType {
   Empty = "empty",
@@ -37,23 +37,25 @@ export type CrownCell = {
   readonly soldiersNumber: number;
 };
 
-export const Cell = ({cell}:{cell: CellT}) => {
-  if(cell.type === CellType.Mountain){
-    return <StyledMountainCell>&#9968;</StyledMountainCell>
+export const Cell = ({ cell }: { cell: CellT }) => {
+  if (cell.type === CellType.Mountain) {
+    return <StyledMountainCell>&#9968;</StyledMountainCell>;
   }
-  if(cell.type === CellType.Army) {
-    return <StyledCell color={cell.color}>{cell.soldiersNumber}</StyledCell>
+  if (cell.type === CellType.Army) {
+    return <StyledCell color={cell.color}>{cell.soldiersNumber}</StyledCell>;
   }
-  return <StyledCell> </StyledCell>
-}
+  return <StyledCell> </StyledCell>;
+};
 
-const StyledCell = styled.div<{color?: string}>`
+const StyledCell = styled.div<{ color?: string }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  ${({color}) => color && css`
-    background-color: ${color};
-  `}
+  ${({ color }) =>
+    color &&
+    css`
+      background-color: ${color};
+    `}
   border: 1px solid black;
   width: 50px;
   height: 50px;

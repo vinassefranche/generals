@@ -1,38 +1,42 @@
 import React, { useState } from "react";
 import { Socket } from "socket.io-client";
-import styled from 'styled-components';
+import styled from "styled-components";
 import { JoinedGame } from "./JoinedGame";
 import { PlayerColor } from "./Player";
 
-export const Game = ({socket}:{socket: Socket}) => {
-  const [name, setName] = useState<string>('');
-  const [player, setPlayer] = useState<{color: PlayerColor, name: string} | null>(null);
-  
+export const Game = ({ socket }: { socket: Socket }) => {
+  const [name, setName] = useState<string>("");
+  const [player, setPlayer] =
+    useState<{ color: PlayerColor; name: string } | null>(null);
+
   const onJoinGameClick = () => {
-    if(!name) {
-      alert('Please write a name');
+    if (!name) {
+      alert("Please write a name");
       return;
     }
-    socket.emit("joinGame", {name}, (response:any) => {
-      console.log(response)
-      if(!response.ok) {
+    socket.emit("joinGame", { name }, (response: any) => {
+      console.log(response);
+      if (!response.ok) {
         alert(`could not join because: ${response.reason}`);
         return;
       }
       setPlayer(response.player);
-    })
-  }
+    });
+  };
 
-  return <Container>
-    {player
-    ? <JoinedGame player={player} socket={socket}/>
-    : <>
-      <input onChange={e => setName(e.target.value)}/>
-      <button onClick={onJoinGameClick}>Join game</button>
-    </>
-    }
-  </Container>
-}
+  return (
+    <Container>
+      {player ? (
+        <JoinedGame player={player} socket={socket} />
+      ) : (
+        <>
+          <input onChange={(e) => setName(e.target.value)} />
+          <button onClick={onJoinGameClick}>Join game</button>
+        </>
+      )}
+    </Container>
+  );
+};
 
 const Container = styled.div`
   display: flex;
@@ -40,4 +44,4 @@ const Container = styled.div`
   align-items: center;
   height: 100vh;
   flex-direction: column;
-`
+`;
