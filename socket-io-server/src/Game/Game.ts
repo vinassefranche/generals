@@ -5,9 +5,8 @@ import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as E from "fp-ts/Either";
 import { constant, pipe } from "fp-ts/function";
 import { armyCell, Cell, CellType, emptyCell, mountainCell } from "../Cell";
+import { Board } from "../Board";
 import { Player, PlayerColorEq, playerPossibleColors } from "../Player";
-
-export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 
 const columnShift = (where: "left" | "right" | "up" | "down") => {
   switch (where) {
@@ -107,14 +106,14 @@ export class Game {
     );
   };
 
-  newPlayer = (): E.Either<Error, Player> =>
+  newPlayer = (refreshBoard: Player["refreshBoard"]): E.Either<Error, Player> =>
     pipe(
       playerPossibleColors,
       RA.difference(PlayerColorEq)(this.players.map((player) => player.color)),
       RNEA.fromReadonlyArray,
       E.fromOption(() => new Error("Maximum number of error reached")),
       E.map(RNEA.head),
-      E.map((color) => ({ color })),
+      E.map((color) => ({ color, refreshBoard })),
       E.map((player) => {
         this.players.push(player);
         return player;
@@ -125,5 +124,10 @@ export class Game {
     this.players = this.players.filter(
       (existingPlayer) => existingPlayer.color !== player.color
     );
+  };
+
+  refreshBoardForAllPlayers = () => {
+    const { board } = this;
+    this.players.forEach(Player.refreshBoard(board));
   };
 }

@@ -20,8 +20,6 @@ const io = new Server(server, {
   },
 });
 
-// let interval: NodeJS.Timeout;
-
 let game: Game | undefined = undefined;
 
 let counter = 0;
@@ -35,23 +33,21 @@ setInterval(() => {
     game.increaseAllArmy();
     counter = 0;
   }
+  game.refreshBoardForAllPlayers();
   const board = game.board;
-  sockets.forEach((socket) => socket.emit("board", board));
 }, 1000);
 
-let sockets: ReadonlyArray<Socket> = [];
 io.on("connection", (socket) => {
   console.log("New client connected");
   if (!game) {
     game = new Game();
   }
-  const playerTry = game.newPlayer();
+  const playerTry = game.newPlayer((board) => socket.emit("board", board));
   if (E.isLeft(playerTry)) {
     console.log("error initializing player");
     return;
   }
   const player = playerTry.right;
-  sockets = [...sockets, socket];
 
   socket.on("move:right", function () {
     if (!game) {
@@ -87,7 +83,6 @@ io.on("connection", (socket) => {
   });
   socket.on("disconnect", () => {
     console.log("Client disconnected");
-    sockets = sockets.filter((sock) => sock !== socket);
     game?.removePlayer(player);
     if (game?.players.length === 0) {
       game = undefined;
