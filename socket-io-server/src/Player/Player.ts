@@ -2,6 +2,7 @@ import * as string from "fp-ts/string";
 import * as number from "fp-ts/number";
 import * as FPEq from "fp-ts/Eq";
 import { Board } from "../Board";
+import { Position } from "../Position";
 
 export type PlayerColor = "blue" | "red" | "yellow" | "green";
 export const playerPossibleColors: ReadonlyArray<PlayerColor> = [
@@ -12,17 +13,6 @@ export const playerPossibleColors: ReadonlyArray<PlayerColor> = [
 ];
 
 export const PlayerColorEq: FPEq.Eq<PlayerColor> = string.Eq;
-
-export namespace Position {
-  export type T = {
-    column: number;
-    row: number;
-  };
-  export const Eq: FPEq.Eq<T> = FPEq.struct({
-    column: number.Eq,
-    row: number.Eq,
-  });
-}
 
 export type PlayerMove = {
   from: Position.T;

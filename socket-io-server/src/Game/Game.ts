@@ -18,8 +18,8 @@ import {
   PlayerColorEq,
   PlayerMove,
   playerPossibleColors,
-  Position,
 } from "../Player";
+import { Position } from "../Position";
 
 const columnShift = (where: "left" | "right" | "up" | "down") => {
   switch (where) {
