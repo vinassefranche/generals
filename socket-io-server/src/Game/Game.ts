@@ -146,14 +146,14 @@ export class Game {
     );
   };
 
-  newPlayer = (refreshBoard: Player["refreshBoard"]): E.Either<Error, Player> =>
+  newPlayer = (player: Omit<Player, "color">): E.Either<Error, Player> =>
     pipe(
       playerPossibleColors,
       RA.difference(PlayerColorEq)(this.players.map((player) => player.color)),
       RNEA.fromReadonlyArray,
       E.fromOption(() => new Error("Maximum number of error reached")),
       E.map(RNEA.head),
-      E.map((color) => ({ color, refreshBoard })),
+      E.map((color) => ({ color, ...player })),
       E.map((player) => {
         this.players.push(player);
         return player;

@@ -14,6 +14,7 @@ export const PlayerColorEq: Eq.Eq<PlayerColor> = string.Eq;
 
 export type Player = {
   color: PlayerColor;
+  name: string;
   refreshBoard: (board: Board) => void;
 };
 

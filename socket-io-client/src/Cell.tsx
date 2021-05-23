@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import { PlayerColor } from './Player';
 
 enum CellType {
   Empty = "empty",
@@ -7,8 +8,6 @@ enum CellType {
   Castle = "castle",
   Crown = "crown",
 }
-
-type Color = "blue" | "red" | "yellow" | "green";
 
 export type CellT = EmptyCell | MoutainCell | ArmyCell | CastleCell | CrownCell;
 
@@ -22,19 +21,19 @@ export type MoutainCell = {
 
 export type ArmyCell = {
   readonly type: CellType.Army;
-  readonly color: Color;
+  readonly color: PlayerColor;
   readonly soldiersNumber: number;
 };
 
 export type CastleCell = {
   readonly type: CellType.Castle;
-  readonly color: Color;
+  readonly color: PlayerColor;
   readonly soldiersNumber: number;
 };
 
 export type CrownCell = {
   readonly type: CellType.Crown;
-  readonly color: Color;
+  readonly color: PlayerColor;
   readonly soldiersNumber: number;
 };
 
