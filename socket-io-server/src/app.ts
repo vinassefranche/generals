@@ -24,9 +24,9 @@ const game = new Game();
 
 io.on("connection", (socket) => {
   console.log("New client connected");
-  if (!game.hasStarted) {
-    game.start();
-  }
+
+  socket.on("startGame", () => game.start());
+
   const playerTry = game.newPlayer((board) => socket.emit("board", board));
   if (E.isLeft(playerTry)) {
     console.log("error initializing player");

@@ -3,7 +3,7 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as E from "fp-ts/Either";
-import { constant, pipe } from "fp-ts/function";
+import { constant, constVoid, pipe } from "fp-ts/function";
 import { armyCell, Cell, CellType, emptyCell, mountainCell } from "../Cell";
 import { Board } from "../Board";
 import { Player, PlayerColorEq, playerPossibleColors } from "../Player";
@@ -74,6 +74,9 @@ export class Game {
   }
 
   start = () => {
+    if (this.hasStarted) {
+      return E.left(new Error("game has already started"));
+    }
     this.board = [
       [emptyCell, emptyCell, emptyCell, mountainCell],
       [
@@ -85,6 +88,7 @@ export class Game {
       [emptyCell, mountainCell, mountainCell, emptyCell],
       [mountainCell, emptyCell, emptyCell, emptyCell],
     ];
+    this.refreshBoardForAllPlayers();
     this.refreshInterval = setInterval(() => {
       this.counter++;
       if (this.counter === 15) {
@@ -93,6 +97,7 @@ export class Game {
       }
       this.refreshBoardForAllPlayers();
     }, 1000);
+    return E.right(constVoid());
   };
 
   end = () => {

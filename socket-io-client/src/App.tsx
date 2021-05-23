@@ -26,9 +26,16 @@ function App() {
 
   return (
     <Container>
-      <StyledBoard>
-        {board && board.map(row => <Row>{row.map(cell => <Cell cell={cell}/>)}</Row>)}
-      </StyledBoard>
+      {board ?
+        <StyledBoard>
+          {board.map(row => <Row>{row.map(cell => <Cell cell={cell}/>)}</Row>)}
+        </StyledBoard>
+        :
+        <>
+          <div>Game not started!</div>
+          <button onClick={() => socket && socket.emit("startGame")}>Start game</button>
+        </>
+      }
       <button onClick={() => socket && socket.emit("move:up")}>&#8593;</button>
       <div>
         <button onClick={() => socket && socket.emit("move:left")}>&#8592;</button>
