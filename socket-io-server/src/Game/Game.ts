@@ -51,6 +51,8 @@ const findArmy = (player: Player, board: Board) => {
 export class Game {
   board: Board;
   players: Array<Player>;
+  refreshInterval?: NodeJS.Timeout;
+  counter: number = 0;
 
   constructor() {
     this.board = [
@@ -66,6 +68,39 @@ export class Game {
     ];
     this.players = [];
   }
+
+  get hasStarted() {
+    return !!this.refreshInterval;
+  }
+
+  start = () => {
+    this.board = [
+      [emptyCell, emptyCell, emptyCell, mountainCell],
+      [
+        mountainCell,
+        armyCell({ color: "blue", soldiersNumber: 1 }),
+        emptyCell,
+        armyCell({ color: "green", soldiersNumber: 1 }),
+      ],
+      [emptyCell, mountainCell, mountainCell, emptyCell],
+      [mountainCell, emptyCell, emptyCell, emptyCell],
+    ];
+    this.refreshInterval = setInterval(() => {
+      this.counter++;
+      if (this.counter === 15) {
+        this.increaseAllArmy();
+        this.counter = 0;
+      }
+      this.refreshBoardForAllPlayers();
+    }, 1000);
+  };
+
+  end = () => {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = undefined;
+    }
+  };
 
   increaseAllArmy() {
     this.board = this.board.map((row) =>
@@ -127,6 +162,7 @@ export class Game {
   };
 
   refreshBoardForAllPlayers = () => {
+    console.log("refreshing board for all players");
     const { board } = this;
     this.players.forEach(Player.refreshBoard(board));
   };

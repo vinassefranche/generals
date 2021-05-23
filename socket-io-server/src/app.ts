@@ -20,27 +20,12 @@ const io = new Server(server, {
   },
 });
 
-let game: Game | undefined = undefined;
-
-let counter = 0;
-
-setInterval(() => {
-  if (!game) {
-    return;
-  }
-  counter++;
-  if (counter === 15) {
-    game.increaseAllArmy();
-    counter = 0;
-  }
-  game.refreshBoardForAllPlayers();
-  const board = game.board;
-}, 1000);
+const game = new Game();
 
 io.on("connection", (socket) => {
   console.log("New client connected");
-  if (!game) {
-    game = new Game();
+  if (!game.hasStarted) {
+    game.start();
   }
   const playerTry = game.newPlayer((board) => socket.emit("board", board));
   if (E.isLeft(playerTry)) {
@@ -50,42 +35,30 @@ io.on("connection", (socket) => {
   const player = playerTry.right;
 
   socket.on("move:right", function () {
-    if (!game) {
-      return;
-    }
     console.log("move:right");
     game.moveArmy(player, "right");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:left", function () {
-    if (!game) {
-      return;
-    }
     console.log("move:left");
     game.moveArmy(player, "left");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:up", function () {
-    if (!game) {
-      return;
-    }
     console.log("move:up");
     game.moveArmy(player, "up");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("move:down", function () {
-    if (!game) {
-      return;
-    }
     console.log("move:down");
     game.moveArmy(player, "down");
     // socket.emit("message", `received ${message}`);
   });
   socket.on("disconnect", () => {
     console.log("Client disconnected");
-    game?.removePlayer(player);
-    if (game?.players.length === 0) {
-      game = undefined;
+    game.removePlayer(player);
+    if (game.players.length === 0) {
+      game.end();
     }
   });
 });
