@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
       }),
       E.map(({ color, name }) => ({ color, name })),
       E.match(
-        () => callback({ ok: false }),
+        (error) => callback({ ok: false, reason: error.message }),
         (player) => callback({ ok: true, player })
       )
     )

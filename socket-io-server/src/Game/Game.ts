@@ -146,8 +146,11 @@ export class Game {
     );
   };
 
-  newPlayer = (player: Omit<Player, "color">): E.Either<Error, Player> =>
-    pipe(
+  newPlayer = (player: Omit<Player, "color">): E.Either<Error, Player> => {
+    if (this.hasStarted) {
+      return E.left(new Error("The game has already started"));
+    }
+    return pipe(
       playerPossibleColors,
       RA.difference(PlayerColorEq)(this.players.map((player) => player.color)),
       RNEA.fromReadonlyArray,
@@ -159,6 +162,7 @@ export class Game {
         return player;
       })
     );
+  };
 
   removePlayer = (player: Player) => {
     this.players = this.players.filter(

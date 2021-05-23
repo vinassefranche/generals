@@ -35,7 +35,7 @@ function App() {
     socket.emit("joinGame", {name}, (response:any) => {
       console.log(response)
       if(!response.ok) {
-        alert('could not join');
+        alert(`could not join because: ${response.reason}`);
         return;
       }
       socket.on("board", (board:Board) => {
