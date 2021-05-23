@@ -55,7 +55,10 @@ function App() {
 
   return (
     <Container>
-      <PlayerName color={player.color}>{player.name}</PlayerName>
+      <div>
+        <StyledPlayerColor color={player.color}> </StyledPlayerColor>
+        {player.name}
+      </div>
       {board ?
         <StyledBoard>
           {board.map(row => <Row>{row.map(cell => <Cell cell={cell}/>)}</Row>)}
@@ -96,6 +99,9 @@ const Container = styled.div`
   flex-direction: column;
 `
 
-const PlayerName = styled.div<{color: string}>`
+const StyledPlayerColor = styled.span<{color: string}>`
   background-color: ${({color}) => color};
+  width: 10px;
+  height: 10px;
+  display: inline-block;
 `;

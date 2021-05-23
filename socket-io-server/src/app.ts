@@ -29,7 +29,6 @@ io.on("connection", (socket) => {
 
   socket.on("startGame", () => game.start());
 
-  let player: Player | undefined;
   socket.on("joinGame", (playerData: { name: string }, callback) =>
     pipe(
       game.newPlayer({
@@ -37,11 +36,16 @@ io.on("connection", (socket) => {
         refreshBoard: (board) => socket.emit("board", board),
       }),
       E.map((player) => {
-        player = player;
         (["right", "left", "up", "down"] as const).forEach((direction) => {
           socket.on(`move:${direction}`, () =>
             game.moveArmy(player, direction)
           );
+        });
+        socket.on("disconnect", () => {
+          game.removePlayer(player);
+          if (game.players.length === 0) {
+            game.end();
+          }
         });
         return player;
       }),
@@ -52,16 +56,6 @@ io.on("connection", (socket) => {
       )
     )
   );
-
-  socket.on("disconnect", () => {
-    if (!player) {
-      return;
-    }
-    game.removePlayer(player);
-    if (game.players.length === 0) {
-      game.end();
-    }
-  });
 });
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
