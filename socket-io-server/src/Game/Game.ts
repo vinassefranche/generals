@@ -18,6 +18,7 @@ import {
   PlayerColorEq,
   PlayerMove,
   playerPossibleColors,
+  Position,
 } from "../Player";
 
 const columnShift = (where: "left" | "right" | "up" | "down") => {
@@ -140,9 +141,17 @@ export class Game {
       E.fromOption(() => new Error("given from cell is out of board")),
       E.chain(
         flow(
-          E.fromPredicate(
-            cellBelongsToPlayer(player),
-            () => new Error("given from cell does not belong to player")
+          O.fromPredicate(cellBelongsToPlayer(player)),
+          O.altW(() =>
+            RA.findFirst((previousMove: PlayerMove) =>
+              Position.Eq.equals(previousMove.to, move.from)
+            )(player.moves)
+          ),
+          E.fromOption(
+            () =>
+              new Error(
+                "given from cell does not belong to player and is not in previous moves"
+              )
           )
         )
       ),
