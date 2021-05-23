@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import styled from "styled-components";
 import { JoinedGame } from "./JoinedGame";
@@ -8,6 +8,13 @@ import { SocketIOResponse } from "./SocketIoStuff";
 export const Game = ({ socket }: { socket: Socket }) => {
   const [name, setName] = useState<string>("");
   const [player, setPlayer] = useState<Player | null>(null);
+
+  useEffect(() => {
+    socket.on("gameEnded", () => setPlayer(null));
+    return () => {
+      socket.off("gameEnded");
+    };
+  }, [socket]);
 
   const onJoinGameClick = () => {
     if (!name) {

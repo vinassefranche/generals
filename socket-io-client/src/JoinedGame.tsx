@@ -103,6 +103,10 @@ export const JoinedGame = ({
     });
   };
 
+  const onEndGame = () => {
+    socket.emit("endGame");
+  };
+
   return (
     <>
       <div>
@@ -137,6 +141,7 @@ export const JoinedGame = ({
         <button onClick={() => onMove("right")}>&#8594;</button>
       </div>
       <button onClick={() => onMove("down")}>&#8595;</button>
+      <button onClick={onEndGame}>Stop game</button>
     </>
   );
 };

@@ -101,6 +101,7 @@ export class Game {
       [emptyCell, mountainCell, mountainCell, emptyCell],
       [mountainCell, emptyCell, emptyCell, emptyCell],
     ];
+    this.counter = 0;
     this.refreshBoardForAllPlayers();
     this.refreshInterval = setInterval(() => {
       this.counter++;
@@ -118,6 +119,7 @@ export class Game {
       clearInterval(this.refreshInterval);
       this.refreshInterval = undefined;
     }
+    this.players = [];
   };
 
   increaseAllArmy() {

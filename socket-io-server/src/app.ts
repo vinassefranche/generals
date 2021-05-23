@@ -1,10 +1,10 @@
 import express from "express";
-import * as http from "http";
 import * as E from "fp-ts/Either";
-import { Server, Socket } from "socket.io";
-import { Game } from "./Game";
 import { pipe } from "fp-ts/function";
-import { Player, PlayerMove } from "./Player";
+import * as http from "http";
+import { Server } from "socket.io";
+import { Game } from "./Game";
+import { PlayerMove } from "./Player";
 
 const port = process.env.PORT || 4001;
 // const index = require("./routes/index");
@@ -36,6 +36,12 @@ io.on("connection", (socket) => {
     }
     game.start();
     callback({ ok: true });
+  });
+
+  socket.on("endGame", () => {
+    game.end();
+    socket.emit("gameEnded");
+    socket.broadcast.emit("gameEnded");
   });
 
   socket.on("joinGame", (playerData: { name: string }, callback) =>
