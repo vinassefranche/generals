@@ -87,9 +87,26 @@ export const crownCell = ({
   soldiersNumber,
 });
 
-type OccupableCell = ArmyCell | CrownCell | OccupiedCastleCell;
-const isOccupableCell = (cell: Cell): cell is OccupableCell =>
+type OccupiedCell = ArmyCell | CrownCell | OccupiedCastleCell;
+const isOccupiedCell = (cell: Cell): cell is OccupiedCell =>
   [CellType.Army, CellType.OccupiedCastle, CellType.Crown].includes(cell.type);
 
-export const cellBelongsToPlayer = (player: Player) => (cell: Cell) =>
-  isOccupableCell(cell) && cell.color === player.color;
+export const cellBelongsToPlayer =
+  (player: Player) =>
+  (cell: Cell): cell is OccupiedCell =>
+    isOccupiedCell(cell) && cell.color === player.color;
+
+type OccupableCell =
+  | ArmyCell
+  | CrownCell
+  | OccupiedCastleCell
+  | EmptyCastleCell
+  | EmptyCell;
+export const isOccupableCell = (cell: Cell): cell is OccupableCell =>
+  [
+    CellType.Army,
+    CellType.OccupiedCastle,
+    CellType.EmptyCastle,
+    CellType.Crown,
+    CellType.Empty,
+  ].includes(cell.type);

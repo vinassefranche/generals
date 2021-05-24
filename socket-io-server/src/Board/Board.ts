@@ -1,3 +1,3 @@
 import { Cell } from "../Cell";
 
-export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
+export type Board = Array<Array<Cell>>;

@@ -12,6 +12,7 @@ import {
   crownCell,
   emptyCastleCell,
   emptyCell,
+  isOccupableCell,
   mountainCell,
   occupiedCastleCell,
 } from "../Cell";
@@ -109,11 +110,12 @@ export class Game {
     this.refreshBoardForAllPlayers();
     this.refreshInterval = setInterval(() => {
       this.counter++;
+      this.resolveNextPlayerMove();
       this.increaseAllArmyCells({
         increaseNormalArmyCells: this.counter % 15 === 0,
       });
       this.refreshBoardForAllPlayers();
-    }, 1000);
+    }, 1500);
     return E.right(constVoid());
   };
 
@@ -155,6 +157,44 @@ export class Game {
     );
   }
 
+  resolveNextPlayerMove = () => {
+    this.players.forEach((player) =>
+      pipe(
+        player.moves,
+        RA.head,
+        O.map((move) =>
+          pipe(
+            this.checkMoveIsValidNow(player, move),
+            O.fromEither,
+            O.map(({ toCell, fromCell }) => {
+              console.log("modifying board");
+              this.board[move.to.row][move.to.column] = {
+                type:
+                  toCell.type === CellType.Empty ? CellType.Army : toCell.type,
+                color: player.color,
+                soldiersNumber: fromCell.soldiersNumber - 1,
+              };
+              this.board[move.from.row][move.from.column] = {
+                type: fromCell.type,
+                color: player.color,
+                soldiersNumber: 1,
+              };
+            }),
+            O.match(
+              () => {
+                player.moves = [];
+              },
+              () => {
+                const [consumedMove, ...rest] = player.moves;
+                player.moves = rest;
+              }
+            )
+          )
+        )
+      )
+    );
+  };
+
   checkMoveIsValid = (player: Player, move: PlayerMove) =>
     pipe(
       this.board,
@@ -185,40 +225,68 @@ export class Game {
           E.fromOption(() => new Error("given to cell is out of board")),
           E.chain(
             E.fromPredicate(
-              (cell) => cell.type !== CellType.Mountain,
-              () => new Error("given to cell is a mountain")
+              isOccupableCell,
+              () => new Error("given to cell is not occupable")
             )
           )
         )
-      ),
-      E.map(constVoid)
+      )
     );
 
-  moveArmy = (player: Player, where: "left" | "right" | "up" | "down") => {
-    this.board = pipe(
-      findArmy(player, this.board),
-      O.chain(({ columnIndex, rowIndex, cell }) =>
+  checkMoveIsValidNow = (player: Player, move: PlayerMove) =>
+    pipe(
+      this.board,
+      RA.lookup(move.from.row),
+      O.chain(flow(RA.lookup(move.from.column))),
+      E.fromOption(() => new Error("given from cell is out of board")),
+      E.chain(
+        E.fromPredicate(
+          cellBelongsToPlayer(player),
+          () => new Error("given from cell does not belong to player")
+        )
+      ),
+      E.bindTo("fromCell"),
+      E.bind("toCell", () =>
         pipe(
           this.board,
-          RA.modifyAt(rowIndex + rowShift(where), (row) =>
-            pipe(
-              row,
-              RA.modifyAt(
-                columnIndex + columnShift(where),
-                (): Cell =>
-                  armyCell({
-                    color: cell.color,
-                    soldiersNumber: cell.soldiersNumber,
-                  })
-              ),
-              O.getOrElse(() => row)
+          RA.lookup(move.to.row),
+          O.chain(flow(RA.lookup(move.to.column))),
+          E.fromOption(() => new Error("given to cell is out of board")),
+          E.chain(
+            E.fromPredicate(
+              isOccupableCell,
+              () => new Error("given to cell is not occupable")
             )
           )
         )
-      ),
-      O.getOrElse(constant(this.board))
+      )
     );
-  };
+
+  // moveArmy = (player: Player, where: "left" | "right" | "up" | "down") => {
+  //   this.board = pipe(
+  //     findArmy(player, this.board),
+  //     O.chain(({ columnIndex, rowIndex, cell }) =>
+  //       pipe(
+  //         this.board,
+  //         RA.modifyAt(rowIndex + rowShift(where), (row) =>
+  //           pipe(
+  //             row,
+  //             RA.modifyAt(
+  //               columnIndex + columnShift(where),
+  //               (): Cell =>
+  //                 armyCell({
+  //                   color: cell.color,
+  //                   soldiersNumber: cell.soldiersNumber,
+  //                 })
+  //             ),
+  //             O.getOrElse(() => row)
+  //           )
+  //         )
+  //       )
+  //     ),
+  //     O.getOrElse(constant(this.board))
+  //   );
+  // };
 
   newPlayer = (
     player: Omit<Player, "color" | "moves">
