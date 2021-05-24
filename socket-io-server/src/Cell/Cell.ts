@@ -4,11 +4,18 @@ export enum CellType {
   Empty = "empty",
   Mountain = "mountain",
   Army = "army",
-  Castle = "castle",
+  EmptyCastle = "emptyCastle",
+  OccupiedCastle = "occupiedCastle",
   Crown = "crown",
 }
 
-export type Cell = EmptyCell | MoutainCell | ArmyCell | CastleCell | CrownCell;
+export type Cell =
+  | EmptyCell
+  | MoutainCell
+  | ArmyCell
+  | EmptyCastleCell
+  | OccupiedCastleCell
+  | CrownCell;
 
 export type EmptyCell = {
   readonly type: CellType.Empty;
@@ -42,22 +49,24 @@ export const armyCell = ({
   soldiersNumber,
 });
 
-export type CastleCell = {
-  readonly type: CellType.Castle;
-  readonly color?: PlayerColor;
-  readonly soldiersNumber?: number;
+export type EmptyCastleCell = {
+  readonly type: CellType.EmptyCastle;
 };
 
-export const castleCell = ({
-  color,
-  soldiersNumber,
-}: {
-  color: PlayerColor;
-  soldiersNumber: number;
-}): CastleCell => ({
-  type: CellType.Castle,
-  color,
-  soldiersNumber,
+export const emptyCastleCell: EmptyCastleCell = {
+  type: CellType.EmptyCastle,
+};
+
+export type OccupiedCastleCell = {
+  readonly type: CellType.OccupiedCastle;
+  readonly color: PlayerColor;
+  readonly soldiersNumber: number;
+};
+export const occupiedCastleCell = (
+  props: Omit<OccupiedCastleCell, "type">
+): OccupiedCastleCell => ({
+  type: CellType.OccupiedCastle,
+  ...props,
 });
 
 export type CrownCell = {
@@ -78,9 +87,9 @@ export const crownCell = ({
   soldiersNumber,
 });
 
-type OccupableCell = ArmyCell | CrownCell | CastleCell;
+type OccupableCell = ArmyCell | CrownCell | OccupiedCastleCell;
 const isOccupableCell = (cell: Cell): cell is OccupableCell =>
-  [CellType.Army, CellType.Castle, CellType.Crown].includes(cell.type);
+  [CellType.Army, CellType.OccupiedCastle, CellType.Crown].includes(cell.type);
 
 export const cellBelongsToPlayer = (player: Player) => (cell: Cell) =>
   isOccupableCell(cell) && cell.color === player.color;

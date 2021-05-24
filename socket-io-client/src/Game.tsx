@@ -25,7 +25,6 @@ export const Game = ({ socket }: { socket: Socket }) => {
       "joinGame",
       { name },
       (response: SocketIOResponse<{ player: Player }>) => {
-        console.log(response);
         if (!response.ok) {
           alert(`could not join because: ${response.reason}`);
           return;

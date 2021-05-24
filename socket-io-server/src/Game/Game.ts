@@ -9,8 +9,11 @@ import {
   Cell,
   cellBelongsToPlayer,
   CellType,
+  crownCell,
+  emptyCastleCell,
   emptyCell,
   mountainCell,
+  occupiedCastleCell,
 } from "../Cell";
 import { Board } from "../Board";
 import {
@@ -68,17 +71,7 @@ export class Game {
   counter: number = 0;
 
   constructor() {
-    this.board = [
-      [emptyCell, emptyCell, emptyCell, mountainCell],
-      [
-        mountainCell,
-        armyCell({ color: "blue", soldiersNumber: 1 }),
-        emptyCell,
-        armyCell({ color: "green", soldiersNumber: 1 }),
-      ],
-      [emptyCell, mountainCell, mountainCell, emptyCell],
-      [mountainCell, emptyCell, emptyCell, emptyCell],
-    ];
+    this.board = [];
     this.players = [];
   }
 
@@ -91,24 +84,34 @@ export class Game {
       return E.left(new Error("game has already started"));
     }
     this.board = [
-      [emptyCell, emptyCell, emptyCell, mountainCell],
+      [
+        emptyCell,
+        armyCell({ color: "blue", soldiersNumber: 1 }),
+        emptyCell,
+        mountainCell,
+      ],
       [
         mountainCell,
-        armyCell({ color: "blue", soldiersNumber: 1 }),
+        crownCell({ color: "blue", soldiersNumber: 1 }),
         emptyCell,
         armyCell({ color: "green", soldiersNumber: 1 }),
       ],
-      [emptyCell, mountainCell, mountainCell, emptyCell],
+      [
+        // occupiedCastleCell({ color: "blue", soldiersNumber: 1 }),
+        emptyCastleCell,
+        mountainCell,
+        mountainCell,
+        emptyCell,
+      ],
       [mountainCell, emptyCell, emptyCell, emptyCell],
     ];
     this.counter = 0;
     this.refreshBoardForAllPlayers();
     this.refreshInterval = setInterval(() => {
       this.counter++;
-      if (this.counter === 15) {
-        this.increaseAllArmy();
-        this.counter = 0;
-      }
+      this.increaseAllArmyCells({
+        increaseNormalArmyCells: this.counter % 15 === 0,
+      });
       this.refreshBoardForAllPlayers();
     }, 1000);
     return E.right(constVoid());
@@ -122,16 +125,33 @@ export class Game {
     this.players = [];
   };
 
-  increaseAllArmy() {
+  increaseAllArmyCells({
+    increaseNormalArmyCells,
+  }: {
+    increaseNormalArmyCells: boolean;
+  }) {
     this.board = this.board.map((row) =>
-      row.map((cell) =>
-        cell.type === CellType.Army
-          ? armyCell({
-              color: cell.color,
-              soldiersNumber: cell.soldiersNumber + 1,
-            })
-          : cell
-      )
+      row.map((cell) => {
+        if (cell.type === CellType.Army && increaseNormalArmyCells) {
+          return armyCell({
+            color: cell.color,
+            soldiersNumber: cell.soldiersNumber + 1,
+          });
+        }
+        if (cell.type === CellType.Crown) {
+          return crownCell({
+            color: cell.color,
+            soldiersNumber: cell.soldiersNumber + 1,
+          });
+        }
+        if (cell.type === CellType.OccupiedCastle) {
+          return occupiedCastleCell({
+            color: cell.color,
+            soldiersNumber: cell.soldiersNumber + 1,
+          });
+        }
+        return cell;
+      })
     );
   }
 
