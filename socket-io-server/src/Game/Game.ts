@@ -7,12 +7,10 @@ import { constant, constVoid, flow, pipe } from "fp-ts/function";
 import {
   armyCell,
   Cell,
-  cellBelongsToPlayer,
   CellType,
   crownCell,
   emptyCastleCell,
   emptyCell,
-  isOccupableCell,
   mountainCell,
   occupiedCastleCell,
 } from "../Cell";
@@ -207,7 +205,7 @@ export class Game {
       E.fromOption(() => new Error("given from cell is out of board")),
       E.chain(
         flow(
-          O.fromPredicate(cellBelongsToPlayer(player)),
+          O.fromPredicate(Cell.belongsToPlayer(player)),
           O.altW(() =>
             RA.findFirst((previousMove: PlayerMove) =>
               Position.Eq.equals(previousMove.to, move.from)
@@ -229,7 +227,7 @@ export class Game {
           E.fromOption(() => new Error("given to cell is out of board")),
           E.chain(
             E.fromPredicate(
-              isOccupableCell,
+              Cell.isOccupable,
               () => new Error("given to cell is not occupable")
             )
           )
@@ -245,7 +243,7 @@ export class Game {
       E.fromOption(() => new Error("given from cell is out of board")),
       E.chain(
         E.fromPredicate(
-          cellBelongsToPlayer(player),
+          Cell.belongsToPlayer(player),
           () => new Error("given from cell does not belong to player")
         )
       ),
@@ -258,7 +256,7 @@ export class Game {
           E.fromOption(() => new Error("given to cell is out of board")),
           E.chain(
             E.fromPredicate(
-              isOccupableCell,
+              Cell.isOccupable,
               () => new Error("given to cell is not occupable")
             )
           )

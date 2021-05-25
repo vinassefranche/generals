@@ -88,13 +88,6 @@ export const crownCell = ({
 });
 
 type OccupiedCell = ArmyCell | CrownCell | OccupiedCastleCell;
-const isOccupiedCell = (cell: Cell): cell is OccupiedCell =>
-  [CellType.Army, CellType.OccupiedCastle, CellType.Crown].includes(cell.type);
-
-export const cellBelongsToPlayer =
-  (player: Player) =>
-  (cell: Cell): cell is OccupiedCell =>
-    isOccupiedCell(cell) && cell.color === player.color;
 
 type OccupableCell =
   | ArmyCell
@@ -102,16 +95,27 @@ type OccupableCell =
   | OccupiedCastleCell
   | EmptyCastleCell
   | EmptyCell;
-export const isOccupableCell = (cell: Cell): cell is OccupableCell =>
-  [
-    CellType.Army,
-    CellType.OccupiedCastle,
-    CellType.EmptyCastle,
-    CellType.Crown,
-    CellType.Empty,
-  ].includes(cell.type);
 
 export namespace Cell {
   export const isEmpty = (cell: Cell): cell is EmptyCell | EmptyCastleCell =>
     [CellType.Empty, CellType.EmptyCastle].includes(cell.type);
+
+  export const isOccupable = (cell: Cell): cell is OccupableCell =>
+    [
+      CellType.Army,
+      CellType.OccupiedCastle,
+      CellType.EmptyCastle,
+      CellType.Crown,
+      CellType.Empty,
+    ].includes(cell.type);
+
+  const isOccupied = (cell: Cell): cell is OccupiedCell =>
+    [CellType.Army, CellType.OccupiedCastle, CellType.Crown].includes(
+      cell.type
+    );
+
+  export const belongsToPlayer =
+    (player: Player) =>
+    (cell: Cell): cell is OccupiedCell =>
+      isOccupied(cell) && cell.color === player.color;
 }
