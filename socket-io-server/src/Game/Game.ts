@@ -167,12 +167,16 @@ export class Game {
             this.checkMoveIsValidNow(player, move),
             O.fromEither,
             O.map(({ toCell, fromCell }) => {
-              console.log("modifying board");
               this.board[move.to.row][move.to.column] = {
                 type:
                   toCell.type === CellType.Empty ? CellType.Army : toCell.type,
                 color: player.color,
-                soldiersNumber: fromCell.soldiersNumber - 1,
+                soldiersNumber:
+                  fromCell.soldiersNumber -
+                  1 +
+                  (Cell.isEmpty(toCell) || toCell.color !== player.color
+                    ? 0
+                    : toCell.soldiersNumber),
               };
               this.board[move.from.row][move.from.column] = {
                 type: fromCell.type,
@@ -258,6 +262,14 @@ export class Game {
               () => new Error("given to cell is not occupable")
             )
           )
+        )
+      ),
+      E.chainFirstW(
+        E.fromPredicate(
+          ({ fromCell, toCell }) =>
+            (Cell.isEmpty(toCell) || toCell.color === player.color) &&
+            fromCell.soldiersNumber > 1,
+          () => new Error("not enough army in fromCell to gain toCell")
         )
       )
     );

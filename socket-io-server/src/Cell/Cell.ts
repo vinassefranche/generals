@@ -110,3 +110,8 @@ export const isOccupableCell = (cell: Cell): cell is OccupableCell =>
     CellType.Crown,
     CellType.Empty,
   ].includes(cell.type);
+
+export namespace Cell {
+  export const isEmpty = (cell: Cell): cell is EmptyCell | EmptyCastleCell =>
+    [CellType.Empty, CellType.EmptyCastle].includes(cell.type);
+}
