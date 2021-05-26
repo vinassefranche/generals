@@ -87,9 +87,9 @@ export const crownCell = ({
   soldiersNumber,
 });
 
-type OccupiedCell = ArmyCell | CrownCell | OccupiedCastleCell;
+export type OccupiedCell = ArmyCell | CrownCell | OccupiedCastleCell;
 
-type OccupableCell =
+export type OccupableCell =
   | ArmyCell
   | CrownCell
   | OccupiedCastleCell

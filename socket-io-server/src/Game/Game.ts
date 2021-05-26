@@ -1,20 +1,17 @@
-import * as string from "fp-ts/string";
+import * as E from "fp-ts/Either";
+import { constVoid, flow, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
-import * as E from "fp-ts/Either";
-import { constant, constVoid, flow, pipe } from "fp-ts/function";
+import { Board } from "../Board";
 import {
   armyCell,
   Cell,
-  CellType,
   crownCell,
   emptyCastleCell,
   emptyCell,
   mountainCell,
-  occupiedCastleCell,
 } from "../Cell";
-import { Board } from "../Board";
 import {
   Player,
   PlayerColorEq,
@@ -95,29 +92,24 @@ export class Game {
             this.checkMoveIsValidNow(player, move),
             O.fromEither,
             O.map(({ toCell, fromCell }) => {
-              this.board[move.to.row][move.to.column] = {
-                type:
-                  toCell.type === CellType.Empty ? CellType.Army : toCell.type,
-                color: player.color,
-                soldiersNumber:
-                  fromCell.soldiersNumber -
-                  1 +
-                  (Cell.isEmpty(toCell) || toCell.color !== player.color
-                    ? 0
-                    : toCell.soldiersNumber),
-              };
-              this.board[move.from.row][move.from.column] = {
-                type: fromCell.type,
-                color: player.color,
-                soldiersNumber: 1,
-              };
+              this.board = Board.applyPlayerMove({
+                to: {
+                  cell: toCell,
+                  position: move.to,
+                },
+                from: {
+                  cell: fromCell,
+                  position: move.from,
+                },
+                player,
+              })(this.board);
             }),
             O.match(
               () => {
                 player.moves = [];
               },
               () => {
-                const [consumedMove, ...rest] = player.moves;
+                const [_, ...rest] = player.moves;
                 player.moves = rest;
               }
             )
