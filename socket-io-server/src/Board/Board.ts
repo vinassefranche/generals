@@ -7,11 +7,11 @@ import {
   OccupableCell,
   OccupiedCell,
 } from "../Cell";
-import * as Array from "fp-ts/Array";
+import * as ReadonlyArray from "fp-ts/ReadonlyArray";
 import { Position } from "../Position";
 import { Player } from "../Player";
 
-export type Board = Array<Array<Cell>>;
+export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 
 export namespace Board {
   export const increaseAllArmyCells = ({
@@ -19,7 +19,7 @@ export namespace Board {
   }: {
     increaseNormalArmyCells: boolean;
   }): ((board: Board) => Board) =>
-    Array.map((row) =>
+    ReadonlyArray.map((row) =>
       row.map((cell) => {
         if (cell.type === CellType.Army && increaseNormalArmyCells) {
           return armyCell({
@@ -54,7 +54,8 @@ export namespace Board {
       player: Player;
     }) =>
     (board: Board): Board => {
-      board[to.position.row][to.position.column] = {
+      const mutableBoard = board as Array<Array<Cell>>;
+      mutableBoard[to.position.row][to.position.column] = {
         type: to.cell.type === CellType.Empty ? CellType.Army : to.cell.type,
         color: player.color,
         soldiersNumber:
@@ -64,11 +65,11 @@ export namespace Board {
             ? 0
             : to.cell.soldiersNumber),
       };
-      board[from.position.row][from.position.column] = {
+      mutableBoard[from.position.row][from.position.column] = {
         type: from.cell.type,
         color: player.color,
         soldiersNumber: 1,
       };
-      return board;
+      return mutableBoard as Board;
     };
 }
