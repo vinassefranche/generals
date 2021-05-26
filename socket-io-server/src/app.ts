@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
         refreshBoard: (board) => socket.emit("board", board),
       }),
       E.map((player) => {
-        socket.on(`move`, (move: PlayerMove, callback) =>
+        socket.on("move", (move: PlayerMove, callback) =>
           pipe(
             game.checkMoveIsValid(player, move),
             E.map(() => {

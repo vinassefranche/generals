@@ -23,46 +23,6 @@ import {
 } from "../Player";
 import { Position } from "../Position";
 
-const columnShift = (where: "left" | "right" | "up" | "down") => {
-  switch (where) {
-    case "left":
-      return -1;
-    case "right":
-      return 1;
-    case "up":
-    case "down":
-      return 0;
-  }
-};
-const rowShift = (where: "left" | "right" | "up" | "down") => {
-  switch (where) {
-    case "left":
-    case "right":
-      return 0;
-    case "up":
-      return -1;
-    case "down":
-      return 1;
-  }
-};
-
-const findArmy = (player: Player, board: Board) => {
-  for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
-    const row = board[rowIndex];
-    for (let columnIndex = 0; columnIndex < row.length; columnIndex++) {
-      const cell = row[columnIndex];
-      if (cell.type === CellType.Army && cell.color === player.color) {
-        return O.some({
-          rowIndex,
-          columnIndex,
-          cell,
-        });
-      }
-    }
-  }
-  return O.none;
-};
-
 export class Game {
   board: Board;
   players: Array<Player>;
@@ -108,7 +68,7 @@ export class Game {
     this.refreshBoardForAllPlayers();
     this.refreshInterval = setInterval(() => {
       this.counter++;
-      this.resolveNextPlayerMove();
+      this.resolvePlayersNextMove();
       this.increaseAllArmyCells({
         increaseNormalArmyCells: this.counter % 15 === 0,
       });
@@ -155,7 +115,7 @@ export class Game {
     );
   }
 
-  resolveNextPlayerMove = () => {
+  resolvePlayersNextMove = () => {
     this.players.forEach((player) =>
       pipe(
         player.moves,
@@ -271,32 +231,6 @@ export class Game {
         )
       )
     );
-
-  // moveArmy = (player: Player, where: "left" | "right" | "up" | "down") => {
-  //   this.board = pipe(
-  //     findArmy(player, this.board),
-  //     O.chain(({ columnIndex, rowIndex, cell }) =>
-  //       pipe(
-  //         this.board,
-  //         RA.modifyAt(rowIndex + rowShift(where), (row) =>
-  //           pipe(
-  //             row,
-  //             RA.modifyAt(
-  //               columnIndex + columnShift(where),
-  //               (): Cell =>
-  //                 armyCell({
-  //                   color: cell.color,
-  //                   soldiersNumber: cell.soldiersNumber,
-  //                 })
-  //             ),
-  //             O.getOrElse(() => row)
-  //           )
-  //         )
-  //       )
-  //     ),
-  //     O.getOrElse(constant(this.board))
-  //   );
-  // };
 
   newPlayer = (
     player: Omit<Player, "color" | "moves">
