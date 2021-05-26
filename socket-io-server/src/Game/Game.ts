@@ -69,9 +69,9 @@ export class Game {
     this.refreshInterval = setInterval(() => {
       this.counter++;
       this.resolvePlayersNextMove();
-      this.increaseAllArmyCells({
+      this.board = Board.increaseAllArmyCells({
         increaseNormalArmyCells: this.counter % 15 === 0,
-      });
+      })(this.board);
       this.refreshBoardForAllPlayers();
     }, 1500);
     return E.right(constVoid());
@@ -84,36 +84,6 @@ export class Game {
     }
     this.players = [];
   };
-
-  increaseAllArmyCells({
-    increaseNormalArmyCells,
-  }: {
-    increaseNormalArmyCells: boolean;
-  }) {
-    this.board = this.board.map((row) =>
-      row.map((cell) => {
-        if (cell.type === CellType.Army && increaseNormalArmyCells) {
-          return armyCell({
-            color: cell.color,
-            soldiersNumber: cell.soldiersNumber + 1,
-          });
-        }
-        if (cell.type === CellType.Crown) {
-          return crownCell({
-            color: cell.color,
-            soldiersNumber: cell.soldiersNumber + 1,
-          });
-        }
-        if (cell.type === CellType.OccupiedCastle) {
-          return occupiedCastleCell({
-            color: cell.color,
-            soldiersNumber: cell.soldiersNumber + 1,
-          });
-        }
-        return cell;
-      })
-    );
-  }
 
   resolvePlayersNextMove = () => {
     this.players.forEach((player) =>
