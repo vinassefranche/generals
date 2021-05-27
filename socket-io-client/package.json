@@ -33,7 +33,9 @@
       "react-app",
       "react-app/jest"
     ],
-    "plugins": ["prettier"],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
       "prettier/prettier": "warn"
     }

@@ -48,7 +48,15 @@ export type CrownCell = {
   readonly soldiersNumber: number;
 };
 
-export const Cell = ({ cell, active }: { cell: CellT; active: boolean }) => {
+export const Cell = ({
+  cell,
+  active,
+  onClick,
+}: {
+  cell: CellT;
+  active: boolean;
+  onClick: () => void;
+}) => {
   if (cell.type === CellType.Mountain) {
     return <CellWithOnlyIcon active={active}>&#9968;</CellWithOnlyIcon>;
   }
@@ -57,14 +65,18 @@ export const Cell = ({ cell, active }: { cell: CellT; active: boolean }) => {
   }
   if (cell.type === CellType.Army) {
     return (
-      <StyledCell color={cell.color} active={active}>
+      <StyledCell color={cell.color} active={active} onClick={onClick}>
         {cell.soldiersNumber}
       </StyledCell>
     );
   }
   if (cell.type === CellType.Crown) {
     return (
-      <CellWithIconAndNumber active={active} color={cell.color}>
+      <CellWithIconAndNumber
+        active={active}
+        color={cell.color}
+        onClick={onClick}
+      >
         <SoldierNumberInCellWithIcon>
           {cell.soldiersNumber}
         </SoldierNumberInCellWithIcon>
@@ -75,7 +87,11 @@ export const Cell = ({ cell, active }: { cell: CellT; active: boolean }) => {
 
   if (cell.type === CellType.OccupiedCastle) {
     return (
-      <CellWithIconAndNumber active={active} color={cell.color}>
+      <CellWithIconAndNumber
+        active={active}
+        color={cell.color}
+        onClick={onClick}
+      >
         <SoldierNumberInCellWithIcon>
           {cell.soldiersNumber}
         </SoldierNumberInCellWithIcon>
@@ -84,7 +100,11 @@ export const Cell = ({ cell, active }: { cell: CellT; active: boolean }) => {
     );
   }
 
-  return <StyledCell active={active}> </StyledCell>;
+  return (
+    <StyledCell active={active} onClick={onClick}>
+      {" "}
+    </StyledCell>
+  );
 };
 
 const StyledCell = styled.div<{ color?: string; active: boolean }>`

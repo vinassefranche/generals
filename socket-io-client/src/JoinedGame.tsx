@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import styled from "styled-components";
 import { Cell, CellT } from "./Cell";
@@ -54,6 +54,13 @@ const defaultCursorPosition: Record<PlayerColor, CursorPosition> = {
   },
 };
 
+const keyToDirectionMapping = {
+  ArrowRight: "right",
+  ArrowLeft: "left",
+  ArrowDown: "down",
+  ArrowUp: "up",
+} as Record<string, Direction>;
+
 export const JoinedGame = ({
   socket,
   player,
@@ -73,26 +80,46 @@ export const JoinedGame = ({
     };
   }, [socket]);
 
-  const onMove = (direction: Direction) => {
-    const newPosition = {
-      column: cursorPosition.column + columnShift(direction),
-      row: cursorPosition.row + rowShift(direction),
-    };
-    socket.emit(
-      "move",
-      {
+  const onMove = useCallback(
+    (direction: Direction) => {
+      const newPosition = {
+        column: cursorPosition.column + columnShift(direction),
+        row: cursorPosition.row + rowShift(direction),
+      };
+      console.log(direction, {
         from: cursorPosition,
         to: newPosition,
-      },
-      (response: SocketIOResponse) => {
-        if (!response.ok) {
-          console.log("Move not possible because ", response.reason);
-          return;
+      });
+      socket.emit(
+        "move",
+        {
+          from: cursorPosition,
+          to: newPosition,
+        },
+        (response: SocketIOResponse) => {
+          if (!response.ok) {
+            console.log("Move not possible because ", response.reason);
+            return;
+          }
+          setCursorPosition(newPosition);
         }
-        setCursorPosition(newPosition);
+      );
+    },
+    [cursorPosition, socket]
+  );
+
+  useEffect(() => {
+    const keyupHandler = (e: KeyboardEvent) => {
+      if (Object.keys(keyToDirectionMapping).includes(e.key)) {
+        e.preventDefault();
+        onMove(keyToDirectionMapping[e.key]);
       }
-    );
-  };
+    };
+    document.addEventListener("keyup", keyupHandler);
+    return () => {
+      document.removeEventListener("keyup", keyupHandler);
+    };
+  }, [onMove]);
 
   const onStartGame = () => {
     socket.emit("startGame", (response: SocketIOResponse) => {
@@ -124,6 +151,9 @@ export const JoinedGame = ({
                     columnIndex === cursorPosition.column &&
                     rowIndex === cursorPosition.row
                   }
+                  onClick={() =>
+                    setCursorPosition({ column: columnIndex, row: rowIndex })
+                  }
                 />
               ))}
             </Row>
@@ -135,12 +165,6 @@ export const JoinedGame = ({
           <button onClick={onStartGame}>Start game</button>
         </>
       )}
-      <button onClick={() => onMove("up")}>&#8593;</button>
-      <div>
-        <button onClick={() => onMove("left")}>&#8592;</button>
-        <button onClick={() => onMove("right")}>&#8594;</button>
-      </div>
-      <button onClick={() => onMove("down")}>&#8595;</button>
       <button onClick={onEndGame}>Stop game</button>
     </>
   );
