@@ -8,6 +8,7 @@ export enum CellType {
   EmptyCastle = "emptyCastle",
   OccupiedCastle = "occupiedCastle",
   Crown = "crown",
+  Unknown = "unknown",
 }
 
 export type CellT =
@@ -16,7 +17,12 @@ export type CellT =
   | ArmyCell
   | EmptyCastleCell
   | OccupiedCastleCell
-  | CrownCell;
+  | CrownCell
+  | UnknownCell;
+
+export type UnknownCell = {
+  readonly type: CellType.Unknown;
+};
 
 export type EmptyCell = {
   readonly type: CellType.Empty;
@@ -57,6 +63,13 @@ export const Cell = ({
   active: boolean;
   onClick: () => void;
 }) => {
+  if (cell.type === CellType.Unknown) {
+    return (
+      <StyledCell active={active} color="grey">
+        {" "}
+      </StyledCell>
+    );
+  }
   if (cell.type === CellType.Mountain) {
     return <CellWithOnlyIcon active={active}>&#9968;</CellWithOnlyIcon>;
   }

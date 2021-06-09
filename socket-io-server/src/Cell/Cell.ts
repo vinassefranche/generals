@@ -7,6 +7,7 @@ export enum CellType {
   EmptyCastle = "emptyCastle",
   OccupiedCastle = "occupiedCastle",
   Crown = "crown",
+  Unknown = "unknown",
 }
 
 export type Cell =
@@ -16,6 +17,13 @@ export type Cell =
   | EmptyCastleCell
   | OccupiedCastleCell
   | CrownCell;
+
+export type UnknownCell = {
+  readonly type: CellType.Unknown;
+};
+export const unknownCell: UnknownCell = {
+  type: CellType.Unknown,
+};
 
 export type EmptyCell = {
   readonly type: CellType.Empty;

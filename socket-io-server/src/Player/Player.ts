@@ -1,8 +1,8 @@
 import * as string from "fp-ts/string";
-import * as number from "fp-ts/number";
 import * as FPEq from "fp-ts/Eq";
-import { Board } from "../Board";
+import { Board, BoardForPlayer } from "../Board";
 import { Position } from "../Position";
+import { pipe } from "fp-ts/function";
 
 export type PlayerColor = "blue" | "red" | "yellow" | "green";
 export const playerPossibleColors: ReadonlyArray<PlayerColor> = [
@@ -22,13 +22,13 @@ export type PlayerMove = {
 export type Player = {
   color: PlayerColor;
   name: string;
-  refreshBoard: (board: Board) => void;
+  refreshBoard: (board: BoardForPlayer) => void;
   moves: Array<PlayerMove>;
 };
 
 export namespace Player {
   export const refreshBoard = (board: Board) => (player: Player) =>
-    player.refreshBoard(board);
+    pipe(Board.getBoardForPlayer(board)(player), player.refreshBoard);
 
   export const newPlayer = (props: Omit<Player, "moves">): Player => ({
     ...props,

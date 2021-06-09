@@ -6,12 +6,15 @@ import {
   occupiedCastleCell,
   OccupableCell,
   OccupiedCell,
+  UnknownCell,
+  unknownCell,
 } from "../Cell";
 import * as ReadonlyArray from "fp-ts/ReadonlyArray";
 import { Position } from "../Position";
-import { Player } from "../Player";
+import type { Player } from "../Player";
 
 export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
+export type BoardForPlayer = ReadonlyArray<ReadonlyArray<Cell | UnknownCell>>;
 
 export namespace Board {
   export const increaseAllArmyCells = ({
@@ -98,6 +101,21 @@ export namespace Board {
       };
       return mutableBoard as Board;
     };
+
+  export const getBoardForPlayer =
+    (board: Board) =>
+    (player: Player): BoardForPlayer =>
+      board.map((row, rowIndex) =>
+        row.map((cell, columnIndex) => {
+          if (
+            Cell.belongsToPlayer(player)(cell) ||
+            cell.type === CellType.Mountain
+          ) {
+            return cell;
+          }
+          return unknownCell;
+        })
+      );
 }
 
 const getSoldiersToFightNumber = (cell: OccupableCell, player: Player) => {
