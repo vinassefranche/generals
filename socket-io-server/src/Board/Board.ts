@@ -54,17 +54,25 @@ export namespace Board {
       player: Player;
     }) =>
     (board: Board): Board => {
+      console.log("applyPlayerMove", to, from);
       const mutableBoard = board as Array<Array<Cell>>;
-      mutableBoard[to.position.row][to.position.column] = {
-        type: to.cell.type === CellType.Empty ? CellType.Army : to.cell.type,
-        color: player.color,
-        soldiersNumber:
-          from.cell.soldiersNumber -
-          1 +
-          (Cell.isEmpty(to.cell) || to.cell.color !== player.color
-            ? 0
-            : to.cell.soldiersNumber),
-      };
+      const soldiersThatMoveNumber = from.cell.soldiersNumber - 1;
+      const soldiersToFightNumber = getSoldiersToFightNumber(to.cell, player);
+      const soldiersNumberDifference =
+        soldiersThatMoveNumber - soldiersToFightNumber;
+      if (Cell.isEmpty(to.cell)) {
+        mutableBoard[to.position.row][to.position.column] = {
+          type: to.cell.type === CellType.Empty ? CellType.Army : to.cell.type,
+          color: player.color,
+          soldiersNumber: soldiersNumberDifference,
+        };
+      } else {
+        mutableBoard[to.position.row][to.position.column] = {
+          type: to.cell.type,
+          color: soldiersNumberDifference > 0 ? player.color : to.cell.color,
+          soldiersNumber: Math.abs(soldiersNumberDifference),
+        };
+      }
       mutableBoard[from.position.row][from.position.column] = {
         type: from.cell.type,
         color: player.color,
@@ -73,3 +81,13 @@ export namespace Board {
       return mutableBoard as Board;
     };
 }
+
+const getSoldiersToFightNumber = (cell: OccupableCell, player: Player) => {
+  if (Cell.isEmpty(cell)) {
+    return 0;
+  }
+  if (cell.color === player.color) {
+    return -cell.soldiersNumber;
+  }
+  return cell.soldiersNumber;
+};

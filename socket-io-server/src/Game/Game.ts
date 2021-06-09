@@ -53,7 +53,7 @@ export class Game {
             mountainCell,
             crownCell({ color: "blue", soldiersNumber: 1 }),
             emptyCell,
-            armyCell({ color: "green", soldiersNumber: 1 }),
+            armyCell({ color: "green", soldiersNumber: 10 }),
           ],
           [
             // occupiedCastleCell({ color: "blue", soldiersNumber: 1 }),
@@ -189,10 +189,8 @@ export class Game {
       ),
       E.chainFirstW(
         E.fromPredicate(
-          ({ fromCell, toCell }) =>
-            (Cell.isEmpty(toCell) || toCell.color === player.color) &&
-            fromCell.soldiersNumber > 1,
-          () => new Error("not enough army in fromCell to gain toCell")
+          ({ fromCell }) => fromCell.soldiersNumber > 1,
+          () => new Error("Only 1 soldier left in fromCell, cannot move")
         )
       )
     );
