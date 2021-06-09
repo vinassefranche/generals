@@ -1,5 +1,5 @@
 import * as E from "fp-ts/Either";
-import { constVoid, flow, pipe } from "fp-ts/function";
+import { flow, identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
@@ -20,6 +20,8 @@ import {
 } from "../Player";
 import { Position } from "../Position";
 
+const REFRESH_INTERVAL = 1000;
+
 export class Game {
   board: Board;
   players: Array<Player>;
@@ -35,44 +37,45 @@ export class Game {
     return !!this.refreshInterval;
   }
 
-  start = () => {
-    if (this.hasStarted) {
-      return E.left(new Error("game has already started"));
-    }
-    this.board = [
-      [
-        emptyCell,
-        armyCell({ color: "blue", soldiersNumber: 1 }),
-        emptyCell,
-        mountainCell,
-      ],
-      [
-        mountainCell,
-        crownCell({ color: "blue", soldiersNumber: 1 }),
-        emptyCell,
-        armyCell({ color: "green", soldiersNumber: 1 }),
-      ],
-      [
-        // occupiedCastleCell({ color: "blue", soldiersNumber: 1 }),
-        emptyCastleCell,
-        mountainCell,
-        mountainCell,
-        emptyCell,
-      ],
-      [mountainCell, emptyCell, emptyCell, emptyCell],
-    ];
-    this.counter = 0;
-    this.refreshBoardForAllPlayers();
-    this.refreshInterval = setInterval(() => {
-      this.counter++;
-      this.resolvePlayersNextMove();
-      this.board = Board.increaseAllArmyCells({
-        increaseNormalArmyCells: this.counter % 15 === 0,
-      })(this.board);
-      this.refreshBoardForAllPlayers();
-    }, 1500);
-    return E.right(constVoid());
-  };
+  start = () =>
+    pipe(
+      !this.hasStarted,
+      E.fromPredicate(identity, () => new Error("game has already started")),
+      E.map(() => {
+        this.board = [
+          [
+            emptyCell,
+            armyCell({ color: "blue", soldiersNumber: 1 }),
+            emptyCell,
+            mountainCell,
+          ],
+          [
+            mountainCell,
+            crownCell({ color: "blue", soldiersNumber: 1 }),
+            emptyCell,
+            armyCell({ color: "green", soldiersNumber: 1 }),
+          ],
+          [
+            // occupiedCastleCell({ color: "blue", soldiersNumber: 1 }),
+            emptyCastleCell,
+            mountainCell,
+            mountainCell,
+            emptyCell,
+          ],
+          [mountainCell, emptyCell, emptyCell, emptyCell],
+        ];
+        this.refreshBoardForAllPlayers();
+        this.counter = 0;
+        this.refreshInterval = setInterval(() => {
+          this.counter++;
+          this.resolvePlayersNextMove();
+          this.board = Board.increaseAllArmyCells({
+            increaseNormalArmyCells: this.counter % 15 === 0,
+          })(this.board);
+          this.refreshBoardForAllPlayers();
+        }, REFRESH_INTERVAL);
+      })
+    );
 
   end = () => {
     if (this.refreshInterval) {
