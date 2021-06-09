@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import styled from "styled-components";
-import { Cell, CellT } from "./Cell";
+import { Cell, CellT, CellType } from "./Cell";
 import { PlayerColor } from "./Player";
 import { SocketIOResponse } from "./SocketIoStuff";
 
@@ -86,26 +86,22 @@ export const JoinedGame = ({
         column: cursorPosition.column + columnShift(direction),
         row: cursorPosition.row + rowShift(direction),
       };
-      console.log(direction, {
+
+      if (
+        !board ||
+        !board[newPosition.row] ||
+        !board[newPosition.row][newPosition.column] ||
+        board[newPosition.row][newPosition.column].type === CellType.Mountain
+      ) {
+        return;
+      }
+      setCursorPosition(newPosition);
+      socket.emit("move", {
         from: cursorPosition,
         to: newPosition,
       });
-      socket.emit(
-        "move",
-        {
-          from: cursorPosition,
-          to: newPosition,
-        },
-        (response: SocketIOResponse) => {
-          if (!response.ok) {
-            console.log("Move not possible because ", response.reason);
-            return;
-          }
-          setCursorPosition(newPosition);
-        }
-      );
     },
-    [cursorPosition, socket]
+    [cursorPosition, socket, board]
   );
 
   useEffect(() => {

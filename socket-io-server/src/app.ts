@@ -58,8 +58,9 @@ io.on("connection", (socket) => {
               player.moves.push(move);
             }),
             E.match(
-              (error) => callback({ ok: false, reason: error.message }),
-              () => callback({ ok: true })
+              (error) =>
+                callback && callback({ ok: false, reason: error.message }),
+              () => callback && callback({ ok: true })
             )
           )
         );
