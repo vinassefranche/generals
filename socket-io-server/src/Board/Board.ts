@@ -33,7 +33,7 @@ export namespace Board {
             soldiersNumber: cell.soldiersNumber + 1,
           });
         }
-        if (cell.type === CellType.OccupiedCastle) {
+        if (cell.type === CellType.OccupiedCastle && cell.color !== null) {
           return occupiedCastleCell({
             color: cell.color,
             soldiersNumber: cell.soldiersNumber + 1,
@@ -60,18 +60,36 @@ export namespace Board {
       const soldiersToFightNumber = getSoldiersToFightNumber(to.cell, player);
       const soldiersNumberDifference =
         soldiersThatMoveNumber - soldiersToFightNumber;
-      if (Cell.isEmpty(to.cell)) {
-        mutableBoard[to.position.row][to.position.column] = {
-          type: to.cell.type === CellType.Empty ? CellType.Army : to.cell.type,
-          color: player.color,
-          soldiersNumber: soldiersNumberDifference,
-        };
-      } else {
-        mutableBoard[to.position.row][to.position.column] = {
-          type: to.cell.type,
-          color: soldiersNumberDifference > 0 ? player.color : to.cell.color,
-          soldiersNumber: Math.abs(soldiersNumberDifference),
-        };
+      switch (to.cell.type) {
+        case CellType.Empty:
+          mutableBoard[to.position.row][to.position.column] = {
+            type: CellType.Army,
+            color: player.color,
+            soldiersNumber: soldiersNumberDifference,
+          };
+          break;
+        case CellType.EmptyCastle:
+          mutableBoard[to.position.row][to.position.column] = {
+            type: CellType.OccupiedCastle,
+            color: player.color,
+            soldiersNumber: soldiersNumberDifference,
+          };
+          break;
+        case CellType.Army:
+        case CellType.Crown:
+          mutableBoard[to.position.row][to.position.column] = {
+            type: to.cell.type,
+            color: soldiersNumberDifference > 0 ? player.color : to.cell.color,
+            soldiersNumber: Math.abs(soldiersNumberDifference),
+          };
+          break;
+        case CellType.OccupiedCastle:
+          mutableBoard[to.position.row][to.position.column] = {
+            type: to.cell.type,
+            color: soldiersNumberDifference > 0 ? player.color : to.cell.color,
+            soldiersNumber: Math.abs(soldiersNumberDifference),
+          };
+          break;
       }
       mutableBoard[from.position.row][from.position.column] = {
         type: from.cell.type,

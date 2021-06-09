@@ -59,7 +59,7 @@ export const emptyCastleCell: EmptyCastleCell = {
 
 export type OccupiedCastleCell = {
   readonly type: CellType.OccupiedCastle;
-  readonly color: PlayerColor;
+  readonly color: PlayerColor | null;
   readonly soldiersNumber: number;
 };
 export const occupiedCastleCell = (

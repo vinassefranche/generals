@@ -38,7 +38,7 @@ export type EmptyCastleCell = {
 
 export type OccupiedCastleCell = {
   readonly type: CellType.OccupiedCastle;
-  readonly color: PlayerColor;
+  readonly color: PlayerColor | null;
   readonly soldiersNumber: number;
 };
 
@@ -89,7 +89,7 @@ export const Cell = ({
     return (
       <CellWithIconAndNumber
         active={active}
-        color={cell.color}
+        color={cell.color || undefined}
         onClick={onClick}
       >
         <SoldierNumberInCellWithIcon>
@@ -125,7 +125,7 @@ const StyledCell = styled.div<{ color?: string; active: boolean }>`
   width: 50px;
   height: 50px;
   font-size: 20px;
-  color: white;
+  color: ${({ color }) => (color ? "white" : "black")};
 `;
 const CellWithOnlyIcon = styled(StyledCell)`
   font-size: 40px;

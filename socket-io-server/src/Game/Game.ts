@@ -11,6 +11,7 @@ import {
   emptyCastleCell,
   emptyCell,
   mountainCell,
+  occupiedCastleCell,
 } from "../Cell";
 import {
   Player,
@@ -45,24 +46,27 @@ export class Game {
         this.board = [
           [
             emptyCell,
+            emptyCell,
             armyCell({ color: "blue", soldiersNumber: 1 }),
             emptyCell,
             mountainCell,
           ],
           [
+            emptyCell,
             mountainCell,
             crownCell({ color: "blue", soldiersNumber: 1 }),
             emptyCell,
             armyCell({ color: "green", soldiersNumber: 10 }),
           ],
           [
-            // occupiedCastleCell({ color: "blue", soldiersNumber: 1 }),
+            occupiedCastleCell({ color: null, soldiersNumber: 10 }),
             emptyCastleCell,
             mountainCell,
             mountainCell,
             emptyCell,
           ],
-          [mountainCell, emptyCell, emptyCell, emptyCell],
+          [mountainCell, emptyCell, emptyCell, emptyCell, emptyCell],
+          [mountainCell, emptyCell, emptyCell, emptyCell, emptyCell],
         ];
         this.refreshBoardForAllPlayers();
         this.counter = 0;
