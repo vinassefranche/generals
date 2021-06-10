@@ -1,0 +1,17 @@
+{
+  "name": "generals",
+  "version": "0.0.1",
+  "description": "",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinassefrance/generals.git"
+  },
+  "scripts": {
+    "server": "yarn workspace generals-server",
+    "client": "yarn workspace generals-client"
+  }
+}
