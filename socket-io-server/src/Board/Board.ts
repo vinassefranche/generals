@@ -113,6 +113,52 @@ export namespace Board {
           ) {
             return cell;
           }
+          const cellsToCheck = [
+            {
+              row: rowIndex - 1,
+              column: columnIndex - 1,
+            },
+            {
+              row: rowIndex - 1,
+              column: columnIndex,
+            },
+            {
+              row: rowIndex - 1,
+              column: columnIndex + 1,
+            },
+            {
+              row: rowIndex,
+              column: columnIndex - 1,
+            },
+            {
+              row: rowIndex,
+              column: columnIndex + 1,
+            },
+            {
+              row: rowIndex + 1,
+              column: columnIndex - 1,
+            },
+            {
+              row: rowIndex + 1,
+              column: columnIndex,
+            },
+            {
+              row: rowIndex + 1,
+              column: columnIndex + 1,
+            },
+          ];
+          for (let index = 0; index < cellsToCheck.length; index++) {
+            const cellToCheck = cellsToCheck[index];
+            if (
+              board[cellToCheck.row] &&
+              board[cellToCheck.row][cellToCheck.column] &&
+              Cell.belongsToPlayer(player)(
+                board[cellToCheck.row][cellToCheck.column]
+              )
+            ) {
+              return cell;
+            }
+          }
           return unknownCell;
         })
       );
