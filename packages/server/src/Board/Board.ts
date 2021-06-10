@@ -57,7 +57,6 @@ export namespace Board {
       player: Player;
     }) =>
     (board: Board): Board => {
-      console.log("applyPlayerMove", to, from);
       const mutableBoard = board as Array<Array<Cell>>;
       const soldiersThatMoveNumber = from.cell.soldiersNumber - 1;
       const soldiersToFightNumber = getSoldiersToFightNumber(to.cell, player);
@@ -113,40 +112,7 @@ export namespace Board {
           ) {
             return cell;
           }
-          const cellsToCheck = [
-            {
-              row: rowIndex - 1,
-              column: columnIndex - 1,
-            },
-            {
-              row: rowIndex - 1,
-              column: columnIndex,
-            },
-            {
-              row: rowIndex - 1,
-              column: columnIndex + 1,
-            },
-            {
-              row: rowIndex,
-              column: columnIndex - 1,
-            },
-            {
-              row: rowIndex,
-              column: columnIndex + 1,
-            },
-            {
-              row: rowIndex + 1,
-              column: columnIndex - 1,
-            },
-            {
-              row: rowIndex + 1,
-              column: columnIndex,
-            },
-            {
-              row: rowIndex + 1,
-              column: columnIndex + 1,
-            },
-          ];
+          const cellsToCheck = getCellsToCheck({ columnIndex, rowIndex });
           for (let index = 0; index < cellsToCheck.length; index++) {
             const cellToCheck = cellsToCheck[index];
             if (
@@ -173,3 +139,44 @@ const getSoldiersToFightNumber = (cell: OccupableCell, player: Player) => {
   }
   return cell.soldiersNumber;
 };
+
+const getCellsToCheck = ({
+  rowIndex,
+  columnIndex,
+}: {
+  rowIndex: number;
+  columnIndex: number;
+}) => [
+  {
+    row: rowIndex - 1,
+    column: columnIndex - 1,
+  },
+  {
+    row: rowIndex - 1,
+    column: columnIndex,
+  },
+  {
+    row: rowIndex - 1,
+    column: columnIndex + 1,
+  },
+  {
+    row: rowIndex,
+    column: columnIndex - 1,
+  },
+  {
+    row: rowIndex,
+    column: columnIndex + 1,
+  },
+  {
+    row: rowIndex + 1,
+    column: columnIndex - 1,
+  },
+  {
+    row: rowIndex + 1,
+    column: columnIndex,
+  },
+  {
+    row: rowIndex + 1,
+    column: columnIndex + 1,
+  },
+];

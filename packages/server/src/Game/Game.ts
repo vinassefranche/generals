@@ -228,7 +228,6 @@ export class Game {
   };
 
   refreshBoardForAllPlayers = () => {
-    console.log("refreshing board for all players");
     const { board } = this;
     this.players.forEach(Player.refreshBoard(board));
   };
