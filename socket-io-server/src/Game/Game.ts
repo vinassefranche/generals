@@ -21,7 +21,7 @@ import {
 } from "../Player";
 import { Position } from "../Position";
 
-const REFRESH_INTERVAL = 1000;
+const REFRESH_INTERVAL = 500;
 
 export class Game {
   board: Board;
@@ -73,9 +73,11 @@ export class Game {
         this.refreshInterval = setInterval(() => {
           this.counter++;
           this.resolvePlayersNextMove();
-          this.board = Board.increaseAllArmyCells({
-            increaseNormalArmyCells: this.counter % 15 === 0,
-          })(this.board);
+          if (this.counter % 2 === 0) {
+            this.board = Board.increaseAllArmyCells({
+              increaseNormalArmyCells: this.counter % 30 === 0,
+            })(this.board);
+          }
           this.refreshBoardForAllPlayers();
         }, REFRESH_INTERVAL);
       })
