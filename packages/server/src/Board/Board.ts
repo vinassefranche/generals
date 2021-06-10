@@ -10,8 +10,10 @@ import {
   unknownCell,
 } from "../Cell";
 import * as ReadonlyArray from "fp-ts/ReadonlyArray";
+import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
+
 import { Position } from "../Position";
-import type { Player } from "../Player";
+import type { Player, PlayerColor } from "../Player";
 
 export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 export type BoardForPlayer = ReadonlyArray<ReadonlyArray<Cell | UnknownCell>>;
@@ -128,6 +130,32 @@ export namespace Board {
           return unknownCell;
         })
       );
+
+  export const getArmyNumbers = (
+    players: RNEA.ReadonlyNonEmptyArray<Player>,
+    board: Board
+  ) =>
+    board.reduce(
+      (previousRowsNumbers, row) =>
+        row.reduce((previousCellsNumbers, cell) => {
+          if (
+            Cell.isOccupied(cell) &&
+            cell.color !== null &&
+            previousCellsNumbers[cell.color] !== undefined
+          ) {
+            return {
+              ...previousCellsNumbers,
+              [cell.color]:
+                previousCellsNumbers[cell.color] + cell.soldiersNumber,
+            };
+          }
+          return previousCellsNumbers;
+        }, previousRowsNumbers),
+      players.reduce(
+        (memo, player) => ({ ...memo, [player.color]: 0 }),
+        {} as Record<PlayerColor, number>
+      )
+    );
 }
 
 const getSoldiersToFightNumber = (cell: OccupableCell, player: Player) => {

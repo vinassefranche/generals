@@ -22,14 +22,14 @@ export type PlayerMove = {
 export type Player = {
   color: PlayerColor;
   name: string;
-  refreshBoard: (board: BoardForPlayer) => void;
+  refreshGame: (props: {
+    board: BoardForPlayer;
+    armyNumbers: Record<PlayerColor, number>;
+  }) => void;
   moves: Array<PlayerMove>;
 };
 
 export namespace Player {
-  export const refreshBoard = (board: Board) => (player: Player) =>
-    pipe(Board.getBoardForPlayer(board)(player), player.refreshBoard);
-
   export const newPlayer = (props: Omit<Player, "moves">): Player => ({
     ...props,
     moves: [],

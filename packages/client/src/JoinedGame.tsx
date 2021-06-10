@@ -61,6 +61,11 @@ const keyToDirectionMapping = {
   ArrowUp: "up",
 } as Record<string, Direction>;
 
+type GameData = {
+  board: Board;
+  armyNumbers: Record<PlayerColor, number>;
+};
+
 export const JoinedGame = ({
   socket,
   player,
@@ -68,15 +73,15 @@ export const JoinedGame = ({
   socket: Socket;
   player: { color: PlayerColor; name: string };
 }) => {
-  const [board, setBoard] = useState<Board | null>(null);
+  const [game, setGame] = useState<GameData | null>(null);
   const [cursorPosition, setCursorPosition] = useState<CursorPosition>(
     defaultCursorPosition[player.color]
   );
 
   useEffect(() => {
-    socket.on("board", (board: Board) => setBoard(board));
+    socket.on("game", (game: GameData) => setGame(game));
     return () => {
-      socket.off("board");
+      socket.off("game");
     };
   }, [socket]);
 
@@ -88,10 +93,11 @@ export const JoinedGame = ({
       };
 
       if (
-        !board ||
-        !board[newPosition.row] ||
-        !board[newPosition.row][newPosition.column] ||
-        board[newPosition.row][newPosition.column].type === CellType.Mountain
+        !game ||
+        !game.board[newPosition.row] ||
+        !game.board[newPosition.row][newPosition.column] ||
+        game.board[newPosition.row][newPosition.column].type ===
+          CellType.Mountain
       ) {
         return;
       }
@@ -101,7 +107,7 @@ export const JoinedGame = ({
         to: newPosition,
       });
     },
-    [cursorPosition, socket, board]
+    [cursorPosition, socket, game]
   );
 
   useEffect(() => {
@@ -132,13 +138,25 @@ export const JoinedGame = ({
 
   return (
     <>
-      <div>
-        <StyledPlayerColor color={player.color}> </StyledPlayerColor>
-        {player.name}
-      </div>
-      {board ? (
+      <GameHeader>
+        <div>
+          <StyledPlayerColor color={player.color}> </StyledPlayerColor>
+          {player.name}
+        </div>
+        {game && (
+          <div>
+            {Object.entries(game.armyNumbers).map(([color, number]) => (
+              <PlayerScore color={color}>
+                <span>{color}:</span>
+                <span>{number}</span>
+              </PlayerScore>
+            ))}
+          </div>
+        )}
+      </GameHeader>
+      {game?.board ? (
         <StyledBoard>
-          {board.map((row, rowIndex) => (
+          {game.board.map((row, rowIndex) => (
             <Row>
               {row.map((cell, columnIndex) => (
                 <Cell
@@ -166,6 +184,15 @@ export const JoinedGame = ({
   );
 };
 
+const GameHeader = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 260px;
+  padding: 20px 0;
+  justify-content: space-between;
+  align-items: center;
+`;
+
 const Row = styled.div`
   display: flex;
   flex-direction: row;
@@ -180,4 +207,14 @@ const StyledPlayerColor = styled.span<{ color: string }>`
   width: 10px;
   height: 10px;
   display: inline-block;
+`;
+
+const PlayerScore = styled.div<{ color: string }>`
+  background-color: ${({ color }) => color};
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  :not(:last-child) {
+    margin-bottom: 5px;
+  }
 `;

@@ -117,7 +117,7 @@ export namespace Cell {
       CellType.Empty,
     ].includes(cell.type);
 
-  const isOccupied = (cell: Cell): cell is OccupiedCell =>
+  export const isOccupied = (cell: Cell): cell is OccupiedCell =>
     [CellType.Army, CellType.OccupiedCastle, CellType.Crown].includes(
       cell.type
     );

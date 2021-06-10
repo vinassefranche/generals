@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
     pipe(
       game.newPlayer({
         name: playerData.name,
-        refreshBoard: (board) => socket.emit("board", board),
+        refreshGame: (board) => socket.emit("game", board),
       }),
       E.map((player) => {
         socket.on("move", (move: PlayerMove, callback) =>

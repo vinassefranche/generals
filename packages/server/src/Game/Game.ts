@@ -15,6 +15,7 @@ import {
 } from "../Cell";
 import {
   Player,
+  PlayerColor,
   PlayerColorEq,
   PlayerMove,
   playerPossibleColors,
@@ -25,7 +26,7 @@ const REFRESH_INTERVAL = 500;
 
 export class Game {
   board: Board;
-  players: Array<Player>;
+  players: ReadonlyArray<Player>;
   refreshInterval?: NodeJS.Timeout;
   counter: number = 0;
 
@@ -42,7 +43,14 @@ export class Game {
     pipe(
       !this.hasStarted,
       E.fromPredicate(identity, () => new Error("game has already started")),
-      E.map(() => {
+      E.chain(() =>
+        pipe(
+          this.players,
+          RNEA.fromReadonlyArray,
+          E.fromOption(() => new Error("Game cannot start without any player"))
+        )
+      ),
+      E.map((players) => {
         this.board = [
           [
             emptyCell,
@@ -68,7 +76,9 @@ export class Game {
           [mountainCell, emptyCell, emptyCell, emptyCell, emptyCell],
           [mountainCell, emptyCell, emptyCell, emptyCell, emptyCell],
         ];
-        this.refreshBoardForAllPlayers();
+        this.refreshGameForAllPlayers(
+          Board.getArmyNumbers(players, this.board)
+        );
         this.counter = 0;
         this.refreshInterval = setInterval(() => {
           this.counter++;
@@ -78,7 +88,9 @@ export class Game {
               increaseNormalArmyCells: this.counter % 30 === 0,
             })(this.board);
           }
-          this.refreshBoardForAllPlayers();
+          this.refreshGameForAllPlayers(
+            Board.getArmyNumbers(players, this.board)
+          );
         }, REFRESH_INTERVAL);
       })
     );
@@ -211,11 +223,11 @@ export class Game {
       playerPossibleColors,
       RA.difference(PlayerColorEq)(this.players.map((player) => player.color)),
       RNEA.fromReadonlyArray,
-      E.fromOption(() => new Error("Maximum number of error reached")),
+      E.fromOption(() => new Error("Maximum number of players reached")),
       E.map(RNEA.head),
       E.map((color) => Player.newPlayer({ color, ...player })),
       E.map((player) => {
-        this.players.push(player);
+        this.players = [...this.players, player];
         return player;
       })
     );
@@ -227,8 +239,14 @@ export class Game {
     );
   };
 
-  refreshBoardForAllPlayers = () => {
+  refreshGameForAllPlayers = (armyNumbers: Record<PlayerColor, number>) => {
     const { board } = this;
-    this.players.forEach(Player.refreshBoard(board));
+    // console.log(Board.getArmyNumbers(board));
+    this.players.forEach((player) => {
+      player.refreshGame({
+        board: Board.getBoardForPlayer(board)(player),
+        armyNumbers,
+      });
+    });
   };
 }
