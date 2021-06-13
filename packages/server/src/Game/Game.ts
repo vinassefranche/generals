@@ -50,32 +50,18 @@ export class Game {
           E.fromOption(() => new Error("Game cannot start without any player"))
         )
       ),
-      E.map((players) => {
-        this.board = [
-          [
-            emptyCell,
-            emptyCell,
-            armyCell({ color: "blue", soldiersNumber: 1 }),
-            emptyCell,
-            mountainCell,
-          ],
-          [
-            emptyCell,
-            mountainCell,
-            crownCell({ color: "blue", soldiersNumber: 1 }),
-            emptyCell,
-            armyCell({ color: "green", soldiersNumber: 10 }),
-          ],
-          [
-            occupiedCastleCell({ color: null, soldiersNumber: 10 }),
-            emptyCastleCell,
-            mountainCell,
-            mountainCell,
-            emptyCell,
-          ],
-          [mountainCell, emptyCell, emptyCell, emptyCell, emptyCell],
-          [mountainCell, emptyCell, emptyCell, emptyCell, emptyCell],
-        ];
+      E.bindTo("players"),
+      E.bindW("board", ({ players }) =>
+        Board.generateNewBoard({
+          size: "medium",
+          playerColors: pipe(
+            players,
+            RNEA.map((player) => player.color)
+          ),
+        })
+      ),
+      E.map(({ players, board }) => {
+        this.board = board;
         this.refreshGameForAllPlayers(
           Board.getArmyNumbers(players, this.board)
         );

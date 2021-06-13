@@ -135,13 +135,13 @@ const StyledCell = styled.div<{ color?: string; active: boolean }>`
   border-width: ${({ active }) => (active ? 2 : 1)}px;
   border-width: 1px;
 
-  width: 50px;
-  height: 50px;
-  font-size: 20px;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
   color: ${({ color }) => (color ? "white" : "black")};
 `;
 const CellWithOnlyIcon = styled(StyledCell)`
-  font-size: 40px;
+  font-size: 25px;
 `;
 
 const CellWithIconAndNumber = styled(StyledCell)`
@@ -150,5 +150,5 @@ const CellWithIconAndNumber = styled(StyledCell)`
 `;
 
 const SoldierNumberInCellWithIcon = styled.span`
-  font-size: 15px;
+  font-size: 12px;
 `;

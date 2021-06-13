@@ -28,14 +28,13 @@ io.on("connection", (socket) => {
   console.log("New client connected");
 
   socket.on("startGame", (callback) => {
-    if (game.players.length === 0) {
-      callback({
-        ok: false,
-        reason: "No players registerd, cannot start the game",
-      });
-    }
-    game.start();
-    callback({ ok: true });
+    pipe(
+      game.start(),
+      E.match(
+        (error) => callback({ ok: false, reason: error.message }),
+        () => callback({ ok: true })
+      )
+    );
   });
 
   socket.on("endGame", () => {

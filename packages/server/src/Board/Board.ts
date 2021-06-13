@@ -8,14 +8,18 @@ import {
   OccupiedCell,
   UnknownCell,
   unknownCell,
+  emptyCell,
 } from "../Cell";
 import * as ReadonlyArray from "fp-ts/ReadonlyArray";
+import * as Array from "fp-ts/Array";
+import * as E from "fp-ts/Either";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 
 import { Position } from "../Position";
 import type { Player, PlayerColor } from "../Player";
 
 export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
+type MutableBoard = Array<Array<Cell>>;
 export type BoardForPlayer = ReadonlyArray<ReadonlyArray<Cell | UnknownCell>>;
 
 export namespace Board {
@@ -59,7 +63,7 @@ export namespace Board {
       player: Player;
     }) =>
     (board: Board): Board => {
-      const mutableBoard = board as Array<Array<Cell>>;
+      const mutableBoard = board as MutableBoard;
       const soldiersThatMoveNumber = from.cell.soldiersNumber - 1;
       const soldiersToFightNumber = getSoldiersToFightNumber(to.cell, player);
       const soldiersNumberDifference =
@@ -156,6 +160,94 @@ export namespace Board {
         {} as Record<PlayerColor, number>
       )
     );
+
+  export const generateNewBoard = ({
+    playerColors,
+  }: {
+    size: "medium";
+    playerColors: RNEA.ReadonlyNonEmptyArray<PlayerColor>;
+  }): E.Either<Error, Board> => {
+    const boardSize = 25;
+    const emptyBoard: MutableBoard = Array.makeBy(boardSize, () =>
+      Array.makeBy(boardSize, () => emptyCell)
+    );
+    for (
+      let playerIndex = 0;
+      playerIndex < playerColors.length;
+      playerIndex++
+    ) {
+      const playerColor = playerColors[playerIndex];
+      switch (playerIndex % 4) {
+        case 0:
+          let playerCellFound = false;
+          for (let columnIndex = 0; columnIndex < boardSize; columnIndex++) {
+            const cell = emptyBoard[0][columnIndex];
+            if (cell.type === CellType.Empty) {
+              console.log("been here too");
+              emptyBoard[0][columnIndex] = crownCell({
+                color: playerColor,
+                soldiersNumber: 0,
+              });
+              playerCellFound = true;
+              break;
+            }
+          }
+          if (playerCellFound) {
+            break;
+          }
+          return E.left(
+            new Error(`Could not find an empty cell for player ${playerColor}`)
+          );
+        case 1:
+          for (
+            let columnIndex = boardSize - 1;
+            columnIndex >= 0;
+            columnIndex--
+          ) {
+            const cell = emptyBoard[boardSize - 1][columnIndex];
+            if (cell.type === CellType.Empty) {
+              emptyBoard[boardSize - 1][columnIndex] = crownCell({
+                color: playerColor,
+                soldiersNumber: 0,
+              });
+              break;
+            }
+          }
+          return E.left(
+            new Error(`Could not find an empty cell for player ${playerColor}`)
+          );
+        case 3:
+          for (let rownIndex = 0; rownIndex < boardSize; rownIndex++) {
+            const cell = emptyBoard[rownIndex][boardSize - 1];
+            if (cell.type === CellType.Empty) {
+              emptyBoard[rownIndex][boardSize - 1] = crownCell({
+                color: playerColor,
+                soldiersNumber: 0,
+              });
+              break;
+            }
+          }
+          return E.left(
+            new Error(`Could not find an empty cell for player ${playerColor}`)
+          );
+        case 3:
+          for (let rownIndex = boardSize - 1; rownIndex >= 0; rownIndex--) {
+            const cell = emptyBoard[rownIndex][0];
+            if (cell.type === CellType.Empty) {
+              emptyBoard[rownIndex][0] = crownCell({
+                color: playerColor,
+                soldiersNumber: 0,
+              });
+              break;
+            }
+          }
+          return E.left(
+            new Error(`Could not find an empty cell for player ${playerColor}`)
+          );
+      }
+    }
+    return E.right(emptyBoard);
+  };
 }
 
 const getSoldiersToFightNumber = (cell: OccupableCell, player: Player) => {
