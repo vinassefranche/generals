@@ -211,7 +211,7 @@ const StyledPlayerColor = styled.span<{ color: string }>`
 
 const PlayerScore = styled.div<{ color: string }>`
   background-color: ${({ color }) => color};
-  color: white;
+  color: ${({ color }) => (color && color !== "yellow" ? "white" : "black")};
   display: flex;
   justify-content: space-between;
   :not(:last-child) {

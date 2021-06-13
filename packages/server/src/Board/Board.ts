@@ -18,6 +18,7 @@ import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 
 import { Position } from "../Position";
 import type { Player, PlayerColor } from "../Player";
+import { constant, constVoid, flow, pipe } from "fp-ts/lib/function";
 
 export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 type MutableBoard = Array<Array<Cell>>;
@@ -162,95 +163,88 @@ export namespace Board {
       )
     );
 
-  const addPlayersToBoard =
-    (board: MutableBoard) =>
-    (playerColors: RNEA.ReadonlyNonEmptyArray<PlayerColor>) => {
-      const boardSize = board.length;
-      for (
-        let playerIndex = 0;
-        playerIndex < playerColors.length;
-        playerIndex++
-      ) {
-        const playerColor = playerColors[playerIndex];
-        switch (playerIndex % 4) {
-          case 0:
-            let playerCellFound = false;
-            for (let columnIndex = 0; columnIndex < boardSize; columnIndex++) {
-              const cell = board[0][columnIndex];
-              if (cell.type === CellType.Empty) {
-                console.log("been here too");
-                board[0][columnIndex] = crownCell({
-                  color: playerColor,
-                  soldiersNumber: 0,
-                });
-                playerCellFound = true;
-                break;
+  const addPlayersToBoard = (board: MutableBoard) =>
+    flow(
+      E.traverseArrayWithIndex(
+        (playerIndex: number, playerColor: PlayerColor) => {
+          const boardSize = board.length;
+          let playerCellFound = false;
+          switch (playerIndex % 4) {
+            case 0:
+              for (
+                let columnIndex = 0;
+                columnIndex < boardSize;
+                columnIndex++
+              ) {
+                const cell = board[0][columnIndex];
+                if (cell.type === CellType.Empty) {
+                  board[0][columnIndex] = crownCell({
+                    color: playerColor,
+                    soldiersNumber: 0,
+                  });
+                  playerCellFound = true;
+                  break;
+                }
               }
-            }
-            if (playerCellFound) {
               break;
-            }
-            return E.left(
-              new Error(
-                `Could not find an empty cell for player ${playerColor}`
-              )
-            );
-          case 1:
-            for (
-              let columnIndex = boardSize - 1;
-              columnIndex >= 0;
-              columnIndex--
-            ) {
-              const cell = board[boardSize - 1][columnIndex];
-              if (cell.type === CellType.Empty) {
-                board[boardSize - 1][columnIndex] = crownCell({
-                  color: playerColor,
-                  soldiersNumber: 0,
-                });
-                break;
+            case 1:
+              for (
+                let columnIndex = boardSize - 1;
+                columnIndex >= 0;
+                columnIndex--
+              ) {
+                const cell = board[boardSize - 1][columnIndex];
+                if (cell.type === CellType.Empty) {
+                  board[boardSize - 1][columnIndex] = crownCell({
+                    color: playerColor,
+                    soldiersNumber: 0,
+                  });
+                  playerCellFound = true;
+                  break;
+                }
               }
-            }
-            return E.left(
-              new Error(
-                `Could not find an empty cell for player ${playerColor}`
-              )
-            );
-          case 3:
-            for (let rownIndex = 0; rownIndex < boardSize; rownIndex++) {
-              const cell = board[rownIndex][boardSize - 1];
-              if (cell.type === CellType.Empty) {
-                board[rownIndex][boardSize - 1] = crownCell({
-                  color: playerColor,
-                  soldiersNumber: 0,
-                });
-                break;
+              break;
+            case 2:
+              for (let rownIndex = 0; rownIndex < boardSize; rownIndex++) {
+                const cell = board[rownIndex][boardSize - 1];
+                if (cell.type === CellType.Empty) {
+                  board[rownIndex][boardSize - 1] = crownCell({
+                    color: playerColor,
+                    soldiersNumber: 0,
+                  });
+                  playerCellFound = true;
+                  break;
+                }
               }
-            }
-            return E.left(
-              new Error(
-                `Could not find an empty cell for player ${playerColor}`
-              )
-            );
-          case 3:
-            for (let rownIndex = boardSize - 1; rownIndex >= 0; rownIndex--) {
-              const cell = board[rownIndex][0];
-              if (cell.type === CellType.Empty) {
-                board[rownIndex][0] = crownCell({
-                  color: playerColor,
-                  soldiersNumber: 0,
-                });
-                break;
+              break;
+            case 3:
+              for (let rownIndex = boardSize - 1; rownIndex >= 0; rownIndex--) {
+                const cell = board[rownIndex][0];
+                if (cell.type === CellType.Empty) {
+                  board[rownIndex][0] = crownCell({
+                    color: playerColor,
+                    soldiersNumber: 0,
+                  });
+                  playerCellFound = true;
+                  break;
+                }
               }
-            }
-            return E.left(
-              new Error(
-                `Could not find an empty cell for player ${playerColor}`
-              )
-            );
+              break;
+          }
+          return pipe(
+            constVoid(),
+            E.fromPredicate(
+              constant(playerCellFound),
+              () =>
+                new Error(
+                  `Could not find an empty cell for player ${playerColor}`
+                )
+            )
+          );
         }
-      }
-      return E.right(board);
-    };
+      ),
+      E.map(constant(board))
+    );
 
   export const generateNewBoard = ({
     playerColors,

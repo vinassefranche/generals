@@ -138,7 +138,7 @@ const StyledCell = styled.div<{ color?: string; active: boolean }>`
   width: 30px;
   height: 30px;
   font-size: 15px;
-  color: ${({ color }) => (color ? "white" : "black")};
+  color: ${({ color }) => (color && color !== "yellow" ? "white" : "black")};
 `;
 const CellWithOnlyIcon = styled(StyledCell)`
   font-size: 25px;
