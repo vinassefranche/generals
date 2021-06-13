@@ -35,24 +35,6 @@ type CursorPosition = {
   column: number;
   row: number;
 };
-const defaultCursorPosition: Record<PlayerColor, CursorPosition> = {
-  blue: {
-    column: 1,
-    row: 1,
-  },
-  green: {
-    column: 3,
-    row: 1,
-  },
-  yellow: {
-    column: 2,
-    row: 2,
-  },
-  red: {
-    column: 2,
-    row: 2,
-  },
-};
 
 const keyToDirectionMapping = {
   ArrowRight: "right",
@@ -74,19 +56,38 @@ export const JoinedGame = ({
   player: { color: PlayerColor; name: string };
 }) => {
   const [game, setGame] = useState<GameData | null>(null);
-  const [cursorPosition, setCursorPosition] = useState<CursorPosition>(
-    defaultCursorPosition[player.color]
+  const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(
+    null
   );
 
   useEffect(() => {
-    socket.on("game", (game: GameData) => setGame(game));
+    socket.on("game", (game: GameData) => {
+      setGame(game);
+      if (cursorPosition === null) {
+        for (let row = 0; row < game.board.length; row++) {
+          for (let column = 0; column < game.board[row].length; column++) {
+            const cell = game.board[row][column];
+            if (cell.type === CellType.Crown && cell.color === player.color) {
+              setCursorPosition({
+                column,
+                row,
+              });
+              return;
+            }
+          }
+        }
+      }
+    });
     return () => {
       socket.off("game");
     };
-  }, [socket]);
+  }, [socket, cursorPosition, setCursorPosition, player.color]);
 
   const onMove = useCallback(
     (direction: Direction) => {
+      if (cursorPosition === null) {
+        return;
+      }
       const newPosition = {
         column: cursorPosition.column + columnShift(direction),
         row: cursorPosition.row + rowShift(direction),
@@ -162,6 +163,7 @@ export const JoinedGame = ({
                 <Cell
                   cell={cell}
                   active={
+                    cursorPosition !== null &&
                     columnIndex === cursorPosition.column &&
                     rowIndex === cursorPosition.row
                   }
