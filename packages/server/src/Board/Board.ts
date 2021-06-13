@@ -18,7 +18,7 @@ import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 
 import { Position } from "../Position";
 import type { Player, PlayerColor } from "../Player";
-import { constant, constVoid, flow, pipe } from "fp-ts/lib/function";
+import { constant, constVoid, flow, identity, pipe } from "fp-ts/lib/function";
 
 export type Board = ReadonlyArray<ReadonlyArray<Cell>>;
 type MutableBoard = Array<Array<Cell>>;
@@ -163,73 +163,76 @@ export namespace Board {
       )
     );
 
+  const getCellsToTraverseToFindPlayerStartLocation = ({
+    playerIndex,
+    boardSize,
+  }: {
+    playerIndex: number;
+    boardSize: number;
+  }) => {
+    switch (playerIndex % 4) {
+      case 0:
+        return {
+          rows: [0],
+          columns: Array.makeBy(boardSize, identity),
+        };
+      case 1:
+        return {
+          rows: [boardSize - 1],
+          columns: Array.makeBy(boardSize, identity).reverse(),
+        };
+      case 2:
+        return {
+          rows: Array.makeBy(boardSize, identity),
+          columns: [boardSize - 1],
+        };
+      case 3:
+        return {
+          rows: Array.makeBy(boardSize, identity).reverse(),
+          columns: [0],
+        };
+    }
+    // TODO - avoid that
+    return {
+      rows: [0],
+      columns: Array.makeBy(boardSize, identity),
+    };
+  };
+
   const addPlayersToBoard = (board: MutableBoard) =>
     flow(
       E.traverseArrayWithIndex(
         (playerIndex: number, playerColor: PlayerColor) => {
-          const boardSize = board.length;
+          const cellsToTaverse = getCellsToTraverseToFindPlayerStartLocation({
+            playerIndex,
+            boardSize: board.length,
+          });
           let playerCellFound = false;
-          switch (playerIndex % 4) {
-            case 0:
-              for (
-                let columnIndex = 0;
-                columnIndex < boardSize;
-                columnIndex++
-              ) {
-                const cell = board[0][columnIndex];
-                if (cell.type === CellType.Empty) {
-                  board[0][columnIndex] = crownCell({
-                    color: playerColor,
-                    soldiersNumber: 0,
-                  });
-                  playerCellFound = true;
-                  break;
-                }
-              }
+          for (
+            let rowIndex = 0;
+            rowIndex < cellsToTaverse.rows.length;
+            rowIndex++
+          ) {
+            if (playerCellFound) {
               break;
-            case 1:
-              for (
-                let columnIndex = boardSize - 1;
-                columnIndex >= 0;
-                columnIndex--
-              ) {
-                const cell = board[boardSize - 1][columnIndex];
-                if (cell.type === CellType.Empty) {
-                  board[boardSize - 1][columnIndex] = crownCell({
-                    color: playerColor,
-                    soldiersNumber: 0,
-                  });
-                  playerCellFound = true;
-                  break;
-                }
+            }
+            const row = cellsToTaverse.rows[rowIndex];
+            for (
+              let columnIndex = 0;
+              columnIndex < cellsToTaverse.columns.length;
+              columnIndex++
+            ) {
+              const column = cellsToTaverse.columns[columnIndex];
+              const cell = board[row][column];
+              if (cell.type === CellType.Empty) {
+                board[row][column] = crownCell({
+                  color: playerColor,
+                  soldiersNumber: 0,
+                });
+                playerCellFound = true;
+                break;
               }
-              break;
-            case 2:
-              for (let rownIndex = 0; rownIndex < boardSize; rownIndex++) {
-                const cell = board[rownIndex][boardSize - 1];
-                if (cell.type === CellType.Empty) {
-                  board[rownIndex][boardSize - 1] = crownCell({
-                    color: playerColor,
-                    soldiersNumber: 0,
-                  });
-                  playerCellFound = true;
-                  break;
-                }
-              }
-              break;
-            case 3:
-              for (let rownIndex = boardSize - 1; rownIndex >= 0; rownIndex--) {
-                const cell = board[rownIndex][0];
-                if (cell.type === CellType.Empty) {
-                  board[rownIndex][0] = crownCell({
-                    color: playerColor,
-                    soldiersNumber: 0,
-                  });
-                  playerCellFound = true;
-                  break;
-                }
-              }
-              break;
+            }
           }
           return pipe(
             constVoid(),
