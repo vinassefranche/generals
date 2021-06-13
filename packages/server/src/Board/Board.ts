@@ -9,6 +9,7 @@ import {
   UnknownCell,
   unknownCell,
   emptyCell,
+  mountainCell,
 } from "../Cell";
 import * as ReadonlyArray from "fp-ts/ReadonlyArray";
 import * as Array from "fp-ts/Array";
@@ -161,6 +162,96 @@ export namespace Board {
       )
     );
 
+  const addPlayersToBoard =
+    (board: MutableBoard) =>
+    (playerColors: RNEA.ReadonlyNonEmptyArray<PlayerColor>) => {
+      const boardSize = board.length;
+      for (
+        let playerIndex = 0;
+        playerIndex < playerColors.length;
+        playerIndex++
+      ) {
+        const playerColor = playerColors[playerIndex];
+        switch (playerIndex % 4) {
+          case 0:
+            let playerCellFound = false;
+            for (let columnIndex = 0; columnIndex < boardSize; columnIndex++) {
+              const cell = board[0][columnIndex];
+              if (cell.type === CellType.Empty) {
+                console.log("been here too");
+                board[0][columnIndex] = crownCell({
+                  color: playerColor,
+                  soldiersNumber: 0,
+                });
+                playerCellFound = true;
+                break;
+              }
+            }
+            if (playerCellFound) {
+              break;
+            }
+            return E.left(
+              new Error(
+                `Could not find an empty cell for player ${playerColor}`
+              )
+            );
+          case 1:
+            for (
+              let columnIndex = boardSize - 1;
+              columnIndex >= 0;
+              columnIndex--
+            ) {
+              const cell = board[boardSize - 1][columnIndex];
+              if (cell.type === CellType.Empty) {
+                board[boardSize - 1][columnIndex] = crownCell({
+                  color: playerColor,
+                  soldiersNumber: 0,
+                });
+                break;
+              }
+            }
+            return E.left(
+              new Error(
+                `Could not find an empty cell for player ${playerColor}`
+              )
+            );
+          case 3:
+            for (let rownIndex = 0; rownIndex < boardSize; rownIndex++) {
+              const cell = board[rownIndex][boardSize - 1];
+              if (cell.type === CellType.Empty) {
+                board[rownIndex][boardSize - 1] = crownCell({
+                  color: playerColor,
+                  soldiersNumber: 0,
+                });
+                break;
+              }
+            }
+            return E.left(
+              new Error(
+                `Could not find an empty cell for player ${playerColor}`
+              )
+            );
+          case 3:
+            for (let rownIndex = boardSize - 1; rownIndex >= 0; rownIndex--) {
+              const cell = board[rownIndex][0];
+              if (cell.type === CellType.Empty) {
+                board[rownIndex][0] = crownCell({
+                  color: playerColor,
+                  soldiersNumber: 0,
+                });
+                break;
+              }
+            }
+            return E.left(
+              new Error(
+                `Could not find an empty cell for player ${playerColor}`
+              )
+            );
+        }
+      }
+      return E.right(board);
+    };
+
   export const generateNewBoard = ({
     playerColors,
   }: {
@@ -168,85 +259,45 @@ export namespace Board {
     playerColors: RNEA.ReadonlyNonEmptyArray<PlayerColor>;
   }): E.Either<Error, Board> => {
     const boardSize = 25;
+    const specialCellsToAdd = {
+      mountains: 25,
+      castles: 10,
+    };
+    const specialCellsLeftToAdd = {
+      mountains: specialCellsToAdd.mountains,
+      castles: specialCellsToAdd.castles,
+    };
+    const totalNumnberOfCells = boardSize * boardSize;
+    let counter = 0;
     const emptyBoard: MutableBoard = Array.makeBy(boardSize, () =>
-      Array.makeBy(boardSize, () => emptyCell)
+      Array.makeBy(boardSize, () => {
+        counter++;
+        if (
+          Math.random() <
+          (specialCellsLeftToAdd.mountains / specialCellsToAdd.mountains) *
+            (counter / totalNumnberOfCells) *
+            0.25
+        ) {
+          specialCellsLeftToAdd.mountains--;
+          return mountainCell;
+        }
+        if (
+          Math.random() <
+          (specialCellsLeftToAdd.castles / specialCellsToAdd.castles) *
+            (counter / totalNumnberOfCells) *
+            0.25
+        ) {
+          specialCellsLeftToAdd.castles--;
+          return occupiedCastleCell({
+            color: null,
+            soldiersNumber: Math.round(Math.random() * 30) + 20,
+          });
+        }
+        return emptyCell;
+      })
     );
-    for (
-      let playerIndex = 0;
-      playerIndex < playerColors.length;
-      playerIndex++
-    ) {
-      const playerColor = playerColors[playerIndex];
-      switch (playerIndex % 4) {
-        case 0:
-          let playerCellFound = false;
-          for (let columnIndex = 0; columnIndex < boardSize; columnIndex++) {
-            const cell = emptyBoard[0][columnIndex];
-            if (cell.type === CellType.Empty) {
-              console.log("been here too");
-              emptyBoard[0][columnIndex] = crownCell({
-                color: playerColor,
-                soldiersNumber: 0,
-              });
-              playerCellFound = true;
-              break;
-            }
-          }
-          if (playerCellFound) {
-            break;
-          }
-          return E.left(
-            new Error(`Could not find an empty cell for player ${playerColor}`)
-          );
-        case 1:
-          for (
-            let columnIndex = boardSize - 1;
-            columnIndex >= 0;
-            columnIndex--
-          ) {
-            const cell = emptyBoard[boardSize - 1][columnIndex];
-            if (cell.type === CellType.Empty) {
-              emptyBoard[boardSize - 1][columnIndex] = crownCell({
-                color: playerColor,
-                soldiersNumber: 0,
-              });
-              break;
-            }
-          }
-          return E.left(
-            new Error(`Could not find an empty cell for player ${playerColor}`)
-          );
-        case 3:
-          for (let rownIndex = 0; rownIndex < boardSize; rownIndex++) {
-            const cell = emptyBoard[rownIndex][boardSize - 1];
-            if (cell.type === CellType.Empty) {
-              emptyBoard[rownIndex][boardSize - 1] = crownCell({
-                color: playerColor,
-                soldiersNumber: 0,
-              });
-              break;
-            }
-          }
-          return E.left(
-            new Error(`Could not find an empty cell for player ${playerColor}`)
-          );
-        case 3:
-          for (let rownIndex = boardSize - 1; rownIndex >= 0; rownIndex--) {
-            const cell = emptyBoard[rownIndex][0];
-            if (cell.type === CellType.Empty) {
-              emptyBoard[rownIndex][0] = crownCell({
-                color: playerColor,
-                soldiersNumber: 0,
-              });
-              break;
-            }
-          }
-          return E.left(
-            new Error(`Could not find an empty cell for player ${playerColor}`)
-          );
-      }
-    }
-    return E.right(emptyBoard);
+
+    return addPlayersToBoard(emptyBoard)(playerColors);
   };
 }
 
